@@ -2,8 +2,10 @@
 
 #### Technical Skills: SQL, Palantir Fondry, Power BI
 
-### Education
+### Certifications
+- Google Project Management (_July 2021_)
 
+### Education
 - B.S., Mechanical Engineering, San José State University (_May 2019_)
 
 ### Work Experience
