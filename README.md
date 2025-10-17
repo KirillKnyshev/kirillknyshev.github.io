@@ -1,6 +1,6 @@
 # Data Analyst
 
-#### Technical Skills:
+#### Technical Skills: SQL, Palantir Fondry, Power BI
 
 ### Education
 
