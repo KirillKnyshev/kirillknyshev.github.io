@@ -4,10 +4,10 @@
 
 ### Certifications
 - Google Project Management (_July 2021_)
-|
+
 ### Education
 - B.S., Mechanical Engineering, San José State University (_May 2019_)
-|
+
 ### Work Experience
 
 **Data Analyst supporting PG&E (_August 2024 - Present_)**
@@ -40,5 +40,5 @@
 - Documented research and inventory progress through formal reports, highlighting production, quality, and any issues or challenges encountered.
 - Coordinated data collection among relevant parties to develop and implement an efficient plan for data incorporation and management.
 - Managed new hire onboarding and training.
-|
+
 ### Projects 
