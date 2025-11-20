@@ -1,8 +1,8 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Project One — Kirill Knyshev</title>
+  <title>Project One — Kirill Knsyshev</title>
   <link rel="stylesheet" href="../../css/styles.css">
 </head>
 <body>
@@ -44,7 +44,7 @@
   </section>
 
   <footer>
-    <p>© 2025 Your Name</p>
+    <p>© 2025 Kirill Knyshev</p>
   </footer>
 </body>
 </html>
