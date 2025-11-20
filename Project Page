@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Project One — Kirill Knyshev</title>
+  <link rel="stylesheet" href="../../css/styles.css">
+</head>
+<body>
+  <header>
+    <h1>Project One</h1>
+  </header>
+
+  <section class="project-detail">
+    <img src="images/hero.jpg" alt="Project One hero image" style="max-width:100%; height:auto;">
+
+    <h2>Overview</h2>
+    <p>Detailed summary of what the project is, why you built it, and what problem you solved.</p>
+
+    <h2>Role & Tools</h2>
+    <ul>
+      <li>Your Role (e.g. Front-end Developer)</li>
+      <li>Technologies: HTML, CSS, JavaScript, etc.</li>
+      <li>Libraries / Frameworks: React, Vue, whatever</li>
+    </ul>
+
+    <h2>Process</h2>
+    <p>Walk through your design or development process. Explain key steps.</p>
+    <ol>
+      <li>Research / Planning</li>
+      <li>Design / Prototype</li>
+      <li>Implementation</li>
+      <li>Testing / Deployment</li>
+    </ol>
+
+    <h2>Challenges & Learnings</h2>
+    <p>Description of challenges you faced and what you learned.</p>
+
+    <h2>Results</h2>
+    <p>What you built, impact of the project, metrics if any.</p>
+
+    <p>
+      <a href="../../index.html">← Back to Projects</a>
+    </p>
+  </section>
+
+  <footer>
+    <p>© 2025 Your Name</p>
+  </footer>
+</body>
+</html>
