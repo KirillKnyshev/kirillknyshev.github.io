@@ -165,3 +165,30 @@ body {
   font-size: 0.9rem;
 }
 
+.hero-section {
+  display: flex;
+  flex-wrap: nowrap;
+  padding: 2rem;
+  gap: 2rem;
+  align-items: flex-start;
+}
+
+.hero-left {
+  width: 35%;
+  text-align: center;
+}
+
+.hero-right {
+  width: 60%;
+  max-width: 500px;
+}
+
+@media (max-width: 800px) {
+  .hero-section {
+    flex-wrap: wrap;
+  }
+
+  .hero-left, .hero-right {
+    width: 100%;
+  }
+}
