@@ -28,22 +28,13 @@ body {
   text-align: center;
 }
 
-img {
-  max-width: 100%;
-  height: auto;
-}
-
-/* Force your profile image to stay small */
 .profile-img {
   width: 180px;
   height: 180px;
   border-radius: 50%;
   object-fit: cover;
   border: 3px solid #222;
-  display: block;
-  margin: 0 auto;
 }
-
 
 .title {
   margin-top: 0.5rem;
