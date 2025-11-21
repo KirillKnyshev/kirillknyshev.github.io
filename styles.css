@@ -28,12 +28,22 @@ body {
   text-align: center;
 }
 
-.profile-img {
+img {
   max-width: 100%;
-  border-radius: 50%;
-  border: 3px solid #222;
-  object-fit: cover;
+  height: auto;
 }
+
+/* Force your profile image to stay small */
+.profile-img {
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #222;
+  display: block;
+  margin: 0 auto;
+}
+
 
 .title {
   margin-top: 0.5rem;
