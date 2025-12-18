@@ -1,138 +1,72 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Kirill Knyshev Portfolio</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="css/styles.css">
-</head>
+<div class="hero-left">
+  <img src="images/profile.jpg" alt="Kirill portrait" class="profile-img">
+  <h1>Kirill Knyshev</h1>
+  <p class="title">Data Analyst</p>
 
-<body>
+  <div class="button-row">
+    <a class="btn" href="files/Kirill_CV.pdf">Download CV</a>
+    <a class="btn" href="#contact">Contact Info</a>
+  </div>
 
-  <nav class="top-nav">
-    <a href="#about">About Me</a>
-    <a href="#experience">Experience</a>
-    <a href="#projects">Project</a>
-    <a href="#contact">Contact</a>
-  </nav>
+  <div class="social-row">
+    <a href="https://www.linkedin.com" target="_blank">LinkedIn</a>
+    <a href="https://www.github.com" target="_blank">GitHub</a>
+  </div>
+</div>
 
-  <header class="hero-section">
+<div class="hero-right" id="about">
+  <h2>About Me</h2>
 
-    <div class="hero-left">
-      <img src="images/profile.jpg" class="profile-img" alt="Kirill portrait">
-      <h1>Kirill Knyshev</h1>
-      <p class="title">Data Analyst</p>
-
-      <div class="button-row">
-        <a class="btn" href="files/Kirill_CV.pdf">Download CV</a>
-        <a class="btn" href="#contact">Contact Info</a>
-      </div>
-
-      <div class="social-row">
-        <a href="https://www.linkedin.com" target="_blank">LinkedIn</a>
-        <a href="https://www.github.com" target="_blank">GitHub</a>
-      </div>
+  <div class="about-boxes">
+    <div class="info-box">
+      <p>Experience</p>
+      <p>1+ years</p>
+      <p>Data Analyst</p>
     </div>
 
-    <div class="hero-right" id="about">
-      <h2>About Me</h2>
-
-      <div class="about-boxes">
-        <div class="info-box">
-          <p>Experience</p>
-          <p>1+ years</p>
-          <p>Data Analyst</p>
-        </div>
-
-        <div class="info-box">
-          <p>Education</p>
-          <p>B.Sc</p>
-          <p>Bachelors Degree</p>
-        </div>
-      </div>
-
-      <p class="about-text">
-        I work with structured data and build clear outputs. I focus on data cleaning, SQL work and visual communication.
-      </p>
+    <div class="info-box">
+      <p>Education</p>
+      <p>B.Sc</p>
+      <p>Bachelors Degree</p>
     </div>
+  </div>
 
-  </header>
+  <p class="about-text">
+    I work with structured data and build clear outputs. I focus on data cleaning, SQL work and visual communication.
+  </p>
+</div>
 
-  <section id="experience" class="experience-section">
-    <h2>Experience</h2>
+<div class="experience-cards">
 
-    <div class="experience-cards">
+  <div class="exp-card">
+    <h3>Data Tools</h3>
+    <ul>
+      <li>SQL</li>
+      <li>BigQuery</li>
+      <li>Excel</li>
+      <li>Tableau</li>
+    </ul>
+  </div>
 
-      <div class="exp-card">
-        <h3>Frontend Development</h3>
-        <ul>
-          <li>HTML</li>
-          <li>CSS</li>
-          <li>SASS</li>
-          <li>JavaScript</li>
-          <li>TypeScript</li>
-          <li>Material UI</li>
-        </ul>
-      </div>
+  <div class="exp-card">
+    <h3>Development</h3>
+    <ul>
+      <li>HTML</li>
+      <li>CSS</li>
+      <li>Git</li>
+    </ul>
+  </div>
 
-      <div class="exp-card">
-        <h3>Frontend Development</h3>
-        <ul>
-          <li>PostgreSQL</li>
-          <li>Node JS</li>
-          <li>Express JS</li>
-          <li>Git</li>
-        </ul>
-      </div>
+</div>
 
-    </div>
-  </section>
+<div class="project-grid">
+  <a href="projects/project1/index.html" class="project-card">
+    <div class="project-img"></div>
+    <p>Project One</p>
+  </a>
 
-  <section id="projects" class="projects-section">
-    <h2>Project</h2>
-
-    <div class="project-grid">
-
-      <a href="projects/project1/index.html" class="project-card">
-        <div class="project-img"></div>
-        <p>Project 1</p>
-      </a>
-
-      <a href="projects/project2/index.html" class="project-card">
-        <div class="project-img"></div>
-        <p>Project 2</p>
-      </a>
-
-      <a href="projects/project3/index.html" class="project-card">
-        <div class="project-img"></div>
-        <p>Project 3</p>
-      </a>
-
-      <div class="project-card"><div class="project-img"></div></div>
-      <div class="project-card"><div class="project-img"></div></div>
-      <div class="project-card"><div class="project-img"></div></div>
-
-    </div>
-  </section>
-
-  <section id="contact" class="contact-section">
-    <h2>Contact Me</h2>
-    <div class="contact-buttons">
-      <a class="btn" href="mailto:your.email@example.com">Email</a>
-      <a class="btn" href="https://www.linkedin.com" target="_blank">LinkedIn</a>
-    </div>
-  </section>
-
-  <footer class="bottom-nav">
-    <a href="#about">About Me</a>
-    <a href="#experience">Experience</a>
-    <a href="#projects">Project</a>
-    <a href="#contact">Contact</a>
-  </footer>
-  
-<footer class="footer-copy">
-  <p>© 2025 Kirill Knyshev</p>
-</footer>
-  
-</body>
-</html>
+  <a href="projects/project2/index.html" class="project-card">
+    <div class="project-img"></div>
+    <p>Project Two</p>
+  </a>
+</div>
