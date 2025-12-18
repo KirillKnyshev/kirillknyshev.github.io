@@ -29,12 +29,12 @@ body {
 }
 
 .profile-img {
-  width: 180px;
-  height: 180px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 3px solid #222;
+width: 160px !important;
+height: 160px !important;
+max-width: 160px !important;
+max-height: 160px !important;
 }
+
 
 .title {
   margin-top: 0.5rem;
@@ -191,4 +191,21 @@ body {
   .hero-left, .hero-right {
     width: 100%;
   }
+}
+
+img {
+width: auto;
+height: auto;
+max-width: 100%;
+}
+
+.profile-img {
+width: 160px;
+height: 160px;
+max-width: 160px;
+max-height: 160px;
+object-fit: cover;
+border-radius: 50%;
+display: block;
+margin: 0 auto;
 }
