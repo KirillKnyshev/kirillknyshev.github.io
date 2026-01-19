@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Global Sales Analysis | Kirill Knyshev</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav id="desktop-nav" style="justify-content: flex-start; padding-left: 5%;">
+        <ul class="nav-links">
+            <li><a href="index.html">← Back to Home</a></li>
+        </ul>
+    </nav>
+
+    <section id="project-header" style="padding-top: 2rem; padding-bottom: 0; align-items: center; text-align: center;">
+        <p class="section__label" style="margin-bottom: 0.2rem;">Case Study</p>
+        <h1 class="title" style="margin-bottom: 0.8rem; font-size: 3rem;">Global Sales Analysis</h1>
+        
+        <div class="btn-container" style="margin-top: 0; margin-bottom: 1.5rem; display: flex; justify-content: center; gap: 1rem;">
+            <button class="btn" onclick="window.open('#', '_blank')">View GitHub</button>
+            <button class="btn" onclick="window.open('YOUR_DASHBOARD_URL_HERE', '_blank')">Live Dashboard</button>
+        </div>
+
+        <div class="section__pic-container" style="width: 80%; max-width: 800px; margin: 0 auto;">
+            <img src="images/google.jpg" alt="Global Sales Analysis Dashboard" class="about-pic" style="width: 100%; height: auto; border-radius: 2rem; display: block;" />
+        </div>
+    </section>
+
+    <div style="max-width: 800px; margin: 0 auto; padding: 2rem 5%;">
+        <h2 style="margin-top: 0;">Project Overview</h2>
+        <p>A retail company needed to identify which regions had declining profit margins despite rising sales volume. The goal was to pinpoint inefficiencies in the logistics network and provide actionable insights for stakeholders.</p>
+
+        <div class="section__pic-container" style="margin: 3rem 0;">
+            <img src="images/data-visual.jpg" alt="Data Analysis Visual" style="width: 100%; height: auto; border-radius: 2rem;" />
+            <p style="font-size: 0.9rem; color: #555; margin-top: 0.5rem; text-align: center;">* Visual representation of regional profit margin trends.</p>
+        </div>
+
+        <h2 style="margin-top: 2rem;">Tools & Technology</h2>
+        <p><strong>SQL:</strong> Data extraction and cleaning of 50,000+ records.<br>
+           <strong>Python:</strong> Exploratory Data Analysis using Pandas and Seaborn.<br>
+           <strong>Tableau:</strong> Final executive dashboard for stakeholders.</p>
+
+        <h2 style="margin-top: 2rem;">Key Insights & Results</h2>
+        <ul style="text-align: left; margin-left: 1.5rem;">
+            <li><strong>Identified Loss:</strong> Found a 12% profit margin leak in the Midwest region due to inefficient shipping routes.</li>
+            <li><strong>Optimization:</strong> Proposed new logistics logic that saves an estimated $15,000 monthly.</li>
+            <li><strong>Automation:</strong> Created a recurring SQL script that updates the sales dashboard automatically every 24 hours.</li>
+        </ul>
+    </div>
+
+    <section id="more-projects" style="padding: 4rem 5%; border-top: 1px solid var(--border-color); background-color: #ffffff;">
+        <h2 class="title" style="font-size: 2rem; margin-bottom: 2rem; text-align: center;">Explore More Projects</h2>
+        
+        <div id="dynamic-project-grid" class="project-grid" style="display: flex; gap: 2rem; justify-content: center; flex-wrap: wrap;">
+            <p>Loading projects...</p>
+        </div>
+    </section>
+
+    <footer>
+        <p class="copyright-text" style="text-align: center; padding: 2rem 0;">Copyright &#169; 2026 Kirill Knyshev. All Rights Reserved.</p>
+    </footer>
+
+    <script>
+        fetch('index.html')
+            .then(response => response.text())
+            .then(data => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(data, 'text/html');
+                const mainGrid = doc.querySelector('.project-grid').innerHTML;
+                document.getElementById('dynamic-project-grid').innerHTML = mainGrid;
+            })
+            .catch(err => {
+                console.error('Failed to load projects:', err);
+                document.getElementById('dynamic-project-grid').innerHTML = '<p>Check back soon for more projects!</p>';
+            });
+    </script>
+</body>
+</html>

@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kirill Knyshev | Portfolio</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav id="desktop-nav">
+        <div class="logo nav-name">Kirill Knyshev</div>
+        <ul class="nav-links">
+            <li><a href="#about">About</a></li>
+            <li><a href="#experience">Experience</a></li>
+            <li><a href="#projects">Projects</a></li>
+            <li><a href="#contact">Contact</a></li>
+        </ul>
+    </nav>
+
+    <section id="profile">
+        <div class="section__pic-container hero-pic">
+            <img src="images/my-photo.jpg" alt="Kirill Knyshev profile picture" />
+        </div>
+        <div class="section__text">
+            <p class="section__text__p1">Hello, I'm</p>
+            <h1 class="title profile-title">Kirill Knyshev</h1>
+            <p class="section__text__p2">Data Analyst</p>
+            <div class="btn-container">
+                <button class="btn" onclick="window.open('https://docs.google.com/document/d/1KQMuZ5zvxDpWyON5J5H1kJGhAS9PTwHXzoWKA1XbRBo/edit?usp=drive_link', '_blank')">Download CV</button>
+                <button class="btn" onclick="location.href='#contact'">Contact Info</button>
+                <button class="btn" onclick="window.open('https://www.linkedin.com/in/kirillknyshev', '_blank')">LinkedIn</button>
+            </div>
+        </div>
+    </section>
+
+    <section id="about">
+        <p class="section__label">Get To Know More</p>
+        <h1 class="title">About Me</h1>
+        <div class="section-container">
+            <div class="section__pic-container">
+                <img src="images/about-me-photo.jpg" alt="About picture" class="about-pic" />
+            </div>
+            <div class="about-details-container">
+                <div class="about-containers">
+                    <div class="details-container">
+                        <img src="images/experience.png" alt="Experience icon" class="icon about-icon" />
+                        <h3>Experience</h3>
+                        <p>2+ years <br />Data Analysis</p>
+                    </div>
+                    <div class="details-container">
+                        <img src="images/education.png" alt="Education icon" class="icon about-icon" />
+                        <h3>Education</h3>
+                        <p>B.Sc. Bachelors Degree</p>
+                    </div>
+                </div>
+                <div class="text-container">
+                    <p>I am a Data Analyst dedicated to finding stories in data. I specialize in using SQL for data extraction and Python for deep-dive analysis and visualization.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="experience">
+        <p class="section__label">Explore My</p>
+        <h1 class="title">Experience</h1>
+        <div class="experience-details-container">
+            <div class="about-containers">
+                <div class="details-container">
+                    <h2 class="experience-sub-title">Data Analysis</h2>
+                    <div class="article-container">
+                        <article>
+                            <img src="images/skills.png" alt="Skill icon" class="icon" />
+                            <div><h3>SQL</h3><p>Experienced</p></div>
+                        </article>
+                        <article>
+                            <img src="images/skills.png" alt="Skill icon" class="icon" />
+                            <div><h3>Python</h3><p>Intermediate</p></div>
+                        </article>
+                        <article>
+                            <img src="images/skills.png" alt="Skill icon" class="icon" />
+                            <div><h3>Palantir</h3><p>Intermediate</p></div>
+                        </article>
+                        <article>
+                            <img src="images/skills.png" alt="Skill icon" class="icon" />
+                            <div><h3>BigQuery</h3><p>Experienced</p></div>
+                        </article>
+                        <article>
+                            <img src="images/skills.png" alt="Skill icon" class="icon" />
+                            <div><h3>Excel</h3><p>Experienced</p></div>
+                        </article>
+                    </div>
+                </div>
+                <div class="details-container">
+                    <h2 class="experience-sub-title">Visualization</h2>
+                    <div class="article-container">
+                        <article>
+                            <img src="images/skills.png" alt="Skill icon" class="icon" />
+                            <div><h3>Tableau</h3><p>Experienced</p></div>
+                        </article>
+                        <article>
+                            <img src="images/skills.png" alt="Skill icon" class="icon" />
+                            <div><h3>Power BI</h3><p>Intermediate</p></div>
+                        </article>
+                    </div>
+                </div>
+                <div class="details-container">
+                    <h2 class="experience-sub-title">Other Skills</h2>
+                    <div class="article-container">
+                        <article>
+                            <img src="images/skills.png" alt="Skill icon" class="icon" />
+                            <div><h3>R</h3><p>Basic</p></div>
+                        </article>
+                        <article>
+                            <img src="images/skills.png" alt="Skill icon" class="icon" />
+                            <div><h3>Statistics</h3><p>Intermediate</p></div>
+                        </article>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="projects">
+        <p class="section__label">Browse My Recent</p>
+        <h1 class="title">Projects</h1>
+        <div class="project-grid">
+            <div class="project-card" onclick="location.href='project1.html'">
+                <img src="images/google.jpg" alt="Google Project" class="project-img" />
+                <h2 class="project-title">Cyclistic Bike-Share Analysis</h2>
+                <p class="project-skills-list">Tools: SQL, Tableau, R</p>
+                <p class="view-project-text">View Case Study &rarr;</p>
+            </div>
+            <div class="project-card project-in-progress">
+                <div class="in-progress-tag">In Progress</div>
+                <img src="images/inprogress.png" alt="Upcoming Project" class="project-img" />
+                <h2 class="project-title">Financial Dashboard</h2>
+                <p class="project-skills-list">Tools: Python, Pandas, Matplotlib</p>
+                <p>Coming Soon...</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="contact">
+        <p class="section__label">Get in Touch</p>
+        <h1 class="title">Contact Me</h1>
+        <div class="contact-container">
+            <form action="https://formspree.io/f/mwvvlwzl" method="POST" class="contact-form">
+                <div class="form-group">
+                    <input type="text" name="name" placeholder="Name" required>
+                </div>
+                <div class="form-group">
+                    <input type="email" name="email" placeholder="Email" required>
+                </div>
+                <div class="form-group">
+                    <textarea name="message" rows="5" placeholder="Message" required></textarea>
+                </div>
+                <button type="submit" class="btn btn-submit">Submit</button>
+            </form>
+            <div class="contact-socials">
+                <a href="https://github.com/KirillKnyshev" target="_blank">GitHub</a>
+                <span>|</span>
+                <a href="https://www.linkedin.com/in/kirillknyshev" target="_blank">LinkedIn</a>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <nav>
+            <ul class="nav-links footer-links">
+                <li><a href="#about">About</a></li>
+                <li><a href="#experience">Experience</a></li>
+                <li><a href="#projects">Projects</a></li>
+                <li><a href="#contact">Contact</a></li>
+            </ul>
+        </nav>
+        <p class="copyright-text">Copyright &#169; 2026 Kirill Knyshev. All Rights Reserved.</p>
+    </footer>
+</body>
+</html>
