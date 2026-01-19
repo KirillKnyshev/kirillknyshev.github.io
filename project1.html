@@ -19,7 +19,7 @@
         
         <div class="btn-container" style="margin-top: 0; margin-bottom: 1.5rem; display: flex; justify-content: center; gap: 1rem;">
             <button class="btn" onclick="window.open('#', '_blank')">View GitHub</button>
-            <button class="btn" onclick="window.open('YOUR_DASHBOARD_URL_HERE', '_blank')">Live Dashboard</button>
+            <button class="btn" onclick="window.open('#', '_blank')">Live Dashboard</button>
         </div>
 
         <div class="section__pic-container" style="width: 80%; max-width: 800px; margin: 0 auto;">
@@ -62,13 +62,31 @@
     </footer>
 
     <script>
+        // Fetch projects from index.html and filter out the current page
         fetch('index.html')
             .then(response => response.text())
             .then(data => {
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(data, 'text/html');
-                const mainGrid = doc.querySelector('.project-grid').innerHTML;
-                document.getElementById('dynamic-project-grid').innerHTML = mainGrid;
+                
+                // Get all project cards from the home page
+                const allProjects = Array.from(doc.querySelectorAll('.project-card'));
+                
+                // Identify current file name (e.g., 'project1.html')
+                const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+
+                // Filter out the project card that links to this page
+                const filteredProjects = allProjects.filter(project => {
+                    const projectLink = project.getAttribute('onclick') || "";
+                    return !projectLink.includes(currentPage);
+                });
+
+                const gridContainer = document.getElementById('dynamic-project-grid');
+                gridContainer.innerHTML = ''; // Clear loading text
+                
+                filteredProjects.forEach(project => {
+                    gridContainer.appendChild(project);
+                });
             })
             .catch(err => {
                 console.error('Failed to load projects:', err);
