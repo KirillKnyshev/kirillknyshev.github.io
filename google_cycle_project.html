@@ -43,18 +43,114 @@
 
                 <pre style="background: #282c34; color: #abb2bf; padding: 1.5rem; border-radius: 8px; overflow-x: auto; margin: 1rem 0; font-family: 'Courier New', Courier, monospace; font-size: 0.9rem; border: 1px solid #3e4451;">
                 <code>
-                    -- Fixing the data gap: Merging the missing April data with the main dataset
-                    INSERT INTO `cyclistic_data.combined_trips`
-                    SELECT * FROM `cyclistic_data.april_2023_temp`
-                    WHERE drive_id NOT IN (SELECT drive_id FROM `cyclistic_data.combined_trips`);
-
-                    -- Final verification of total row count (5.7M+)
-                    SELECT COUNT(*) FROM `cyclistic_data.combined_trips`;
+                  -- Manually appending the missing April 2025 data to the master table
+                    INSERT INTO `case-studies-478607.case_study_ggle.all_trips`
+                    SELECT * FROM `case-studies-478607.case_study_ggle.202504_divvy_tripdata`;
+                    
+                    -- Verifying total record count (Result: 5.55M rows)
+                    SELECT COUNT(*) FROM `case-studies-478607.case_study_ggle.all_trips`;
                 </code>
                 </pre>
             
-            <li><strong>Integrity Check:</strong> Identified a data gap for April 2023 where rows were missing; resolved this by performing a targeted <code>INSERT</code> from the original source CSV to restore seasonal accuracy.</li>
-            <li><strong>Data Transformation:</strong> Created new columns for <code>ride_length</code> (calculated as the difference between start and end times) and <code>day_of_week</code> to enable time-based behavioral analysis.</li>
+            <li><strong>Data Quality Audit:</strong> After encountering significant performance lag in Excel due to the 5.5M+ row count, I migrated the audit process to BigQuery. I wrote a comprehensive validation script to identify missing values (NULLs) and anomalies across all key fields.</li>
+
+                <pre style="background: #282c34; color: #abb2bf; padding: 1.5rem; border-radius: 8px; overflow-x: auto; margin: 1rem 0; font-family: 'Courier New', Courier, monospace; font-size: 0.9rem; border: 1px solid #3e4451;">
+                    <code>
+                    -- Auditing data for NULLs and short trips
+                    SELECT 
+                        COUNT(*) AS total_rows,
+                        COUNTIF(ride_id IS NULL) AS missing_ids,
+                        COUNTIF(started_at IS NULL OR ended_at IS NULL) AS missing_timestamps,
+                        COUNTIF(start_station_name IS NULL) AS null_start_stations,
+                        COUNTIF(end_station_name IS NULL) AS null_end_stations,
+                        -- Identifying 'False Starts' (trips under 60 seconds)
+                        COUNTIF(TIMESTAMP_DIFF(ended_at, started_at, SECOND) <= 60) AS short_trips_under_60s
+                    FROM `case-studies-478607.case_study_ggle.all_trips`;
+                    </code>
+                </pre>
+            
+            <li><strong>Advanced Transformation & Imputation:</strong> To preserve data volume, I chose not to delete rows with missing station names. Instead, I used <code>IFNULL</code> to categorize them, while simultaneously calculating trip durations and extracting calendar data.</li>
+
+                <pre style="background: #282c34; color: #abb2bf; padding: 1.5rem; border-radius: 8px; overflow-x: auto; margin: 1rem 0; font-family: 'Courier New', Courier, monospace; font-size: 0.9rem; border: 1px solid #3e4451;">
+                    <code>
+                    -- Creating the final cleaned table: all_trips_v2
+                    CREATE TABLE `case-studies-478607.case_study_ggle.all_trips_v2` AS
+                    SELECT 
+                        ride_id, rideable_type, member_casual,
+                        -- 1. Handle Missing Station Names (Imputation)
+                        IFNULL(start_station_name, 'On-Street / Virtual Dock') AS start_station_name,
+                        IFNULL(end_station_name, 'On-Street / Virtual Dock') AS end_station_name,
+                        start_lat, start_lng, end_lat, end_lng, started_at, ended_at,
+                        
+                        -- 2. Calculate Ride Length in Minutes
+                        ROUND(TIMESTAMP_DIFF(ended_at, started_at, SECOND) / 60, 2) AS ride_length_minutes,
+                        
+                        -- 3. Extract Day of Week for Analysis
+                        FORMAT_TIMESTAMP('%A', started_at) AS day_of_week,
+                    
+                        -- 4. Create a Trip Type Category (Identify False Starts)
+                        CASE 
+                            WHEN TIMESTAMP_DIFF(ended_at, started_at, SECOND) <= 60 THEN 'False Start'
+                            ELSE 'Real Ride'
+                        END AS trip_type
+                    FROM `case-studies-478607.case_study_ggle.all_trips`
+                    WHERE TIMESTAMP_DIFF(ended_at, started_at, SECOND) >= 0;
+                    </code>
+                </pre>
+            
+            <li><strong>Defining "False Starts":</strong> I implemented a 60-second threshold to identify non-journey data. 
+                <p style="font-size: 0.9rem; font-style: italic; color: #555; margin-top: 0.5rem;">
+                    <strong>Logic:</strong> Trips under 1 minute often represent maintenance checks or users encountering docking issues. I chose to label these as "False Starts" rather than deleting them immediately, allowing for a cleaner analysis of "Real Rides" while maintaining a full audit trail.</p></li>
+            <li><strong>Data Aggregation & Optimization:</strong> To stay within Tableau's 1GB limit and ensure dashboard responsiveness, I aggregated the 5.5M+ rows into a summary table. I filtered for "Real Rides," extracted temporal features (Month, Season, Hour), and pre-calculated metrics.</li>
+            
+                <pre style="background: #282c34; color: #abb2bf; padding: 1.5rem; border-radius: 8px; overflow-x: auto; margin: 1rem 0; font-family: 'Courier New', Courier, monospace; font-size: 0.9rem; border: 1px solid #3e4451;">
+                    <code>
+                    -- Creating the final optimized table for Tableau
+                    SELECT 
+                        member_casual, 
+                        rideable_type, 
+                        day_of_week, 
+                        FORMAT_TIMESTAMP('%B', started_at) AS month_name,
+                        -- 1. Categorizing Seasons
+                        CASE 
+                            WHEN FORMAT_TIMESTAMP('%B', started_at) IN ('December', 'January', 'February') THEN 'Winter'
+                            WHEN FORMAT_TIMESTAMP('%B', started_at) IN ('March', 'April', 'May') THEN 'Spring'
+                            WHEN FORMAT_TIMESTAMP('%B', started_at) IN ('June', 'July', 'August') THEN 'Summer'
+                            ELSE 'Fall' 
+                        END AS season,
+                        -- 2. Extracting Peak Hours
+                        EXTRACT(HOUR FROM started_at) AS start_hour,
+                        start_station_name, start_lat, start_lng,
+                        -- 3. Pre-calculating Aggregates
+                        COUNT(*) AS total_trips,
+                        ROUND(AVG(ride_length_minutes), 2) AS avg_duration_mins
+                    FROM `case-studies-478607.case_study_ggle.all_trips_v2`
+                    WHERE trip_type = 'Real Ride'
+                    GROUP BY 1, 2, 3, 4, 5, 6, 7, 8, 9;
+                    </code>
+                </pre>
+            
+            <li><strong>Storage Optimization & Error Tracking:</strong> To stay under Tableau’s 1GB limit, I separated "False Starts" into a distinct summary table. This allowed me to analyze system friction (failed unlocks) without bloating the primary analysis dataset.</li>
+            
+                <pre style="background: #282c34; color: #abb2bf; padding: 1.5rem; border-radius: 8px; overflow-x: auto; margin: 1rem 0; font-family: 'Courier New', Courier, monospace; font-size: 0.9rem; border: 1px solid #3e4451;">
+                    <code>
+                    -- Aggregating False Starts to analyze docking/technical friction
+                    SELECT   
+                        member_casual, 
+                        rideable_type, 
+                        day_of_week, 
+                        COUNT(*) AS total_false_starts
+                    FROM `case-studies-478607.case_study_ggle.all_trips_v2`
+                    WHERE trip_type = 'False Start'
+                    GROUP BY 1, 2, 3;
+                    </code>
+                </pre>
+            
+<div style="text-align: center; margin: 1.5rem 0;">
+    <img src="images/google_cycle_project/bigquery_audit_results.png" alt="BigQuery Query Results" style="width: 100%; max-width: 600px; border: 1px solid #ddd; border-radius: 8px;">
+    <p style="font-size: 0.8rem; color: #777;">Audit results identifying 148,529 trips under 60 seconds.</p>
+</div>
+            
             <li><strong>Data Cleaning:</strong> Filtered out "False Starts" (rides under 60 seconds) and maintenance entries where <code>start_station_name</code> was missing or listed as a test station to prevent skewing the results.</li>
         </ul>
 
