@@ -132,8 +132,8 @@
             
             <li><strong>Storage Optimization & Error Tracking:</strong> To stay under Tableau’s 1GB limit, I separated "False Starts" into a distinct summary table. This allowed me to analyze system friction (failed unlocks) without bloating the primary analysis dataset.</li>
             
-                <pre style="background: #282c34; color: #abb2bf; padding: 1.5rem; border-radius: 8px; overflow-x: auto; margin: 1rem 0; font-family: 'Courier New', Courier, monospace; font-size: 0.9rem; border: 1px solid #3e4451;">
-                    <code>
+            <pre style="background: #282c34; color: #abb2bf; padding: 1.5rem; border-radius: 8px; overflow-x: auto; margin: 1rem 0; font-family: 'Courier New', Courier, monospace; font-size: 0.9rem; border: 1px solid #3e4451;">
+                <code>
                     -- Aggregating False Starts to analyze docking/technical friction
                     SELECT   
                         member_casual, 
@@ -143,16 +143,13 @@
                     FROM `case-studies-478607.case_study_ggle.all_trips_v2`
                     WHERE trip_type = 'False Start'
                     GROUP BY 1, 2, 3;
-                    </code>
-                </pre>
+                </code>
+             </pre>
             
-<div style="text-align: center; margin: 1.5rem 0;">
-    <img src="images/google_cycle_project/bigquery_audit_results.png" alt="BigQuery Query Results" style="width: 100%; max-width: 600px; border: 1px solid #ddd; border-radius: 8px;">
-    <p style="font-size: 0.8rem; color: #777;">Audit results identifying 148,529 trips under 60 seconds.</p>
-</div>
-            
-            <li><strong>Data Cleaning:</strong> Filtered out "False Starts" (rides under 60 seconds) and maintenance entries where <code>start_station_name</code> was missing or listed as a test station to prevent skewing the results.</li>
-        </ul>
+            <div style="text-align: center; margin: 1.5rem 0;">
+                <img src="images/google_cycle_project/bigquery_audit_results.png" alt="BigQuery Query Results" style="width: 100%; max-width: 600px; border: 1px solid #ddd; border-radius: 8px;">
+                <p style="font-size: 0.8rem; color: #777;">Audit results identifying 148,529 trips under 60 seconds.</p>
+            </div>
 
         <h2 style="margin-top: 2rem;">Key Insights & Results</h2>
         <ul style="text-align: left; margin-left: 1.5rem;">
