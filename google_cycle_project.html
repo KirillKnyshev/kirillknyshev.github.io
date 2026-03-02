@@ -42,6 +42,14 @@
         <ul style="text-align: left; margin-left: 1.5rem;">
             <li><strong>Data Consolidation & Auditing:</strong> I streamlined the ingestion process by batch-loading 12 monthly CSVs from Google Cloud Storage into BigQuery. Upon auditing the record counts, I identified that the April 2025 dataset failed to append correctly.</li>
 
+        <div style="background-color: #f8f9fa; border-left: 5px solid #007bff; padding: 1.5rem; margin: 2rem 0; border-radius: 5px;">
+            <h4 style="margin-top: 0; color: #007bff;">🛠️ Technical Note: Resolving the "April Data Gap"</h4>
+            <p style="font-size: 0.95rem; line-height: 1.6;">
+            During the automated ingestion of 5.7M rows, my initial data audit revealed a significant volume discrepancy. By running a <code>COUNT(*)</code> grouped by month, I identified that the <strong>April 2025</strong> dataset (<code>202504-divvy-tripdata</code>) had failed to append. </p>
+            <p style="font-size: 0.95rem; line-height: 1.6; margin-bottom: 0;">
+            <strong>The Solution:</strong> I performed a manual schema-matched upload for the missing month and used a SQL validation script to ensure no duplicate records were created. This maintained the integrity of the 12-month rolling window required for accurate seasonal trend analysis.</p>
+        </div>
+            
         <pre style="background: #282c34; color: #abb2bf; padding: 1.0rem; border-radius: 8px; overflow-x: auto; margin: 1rem 0 1rem -1.5rem; font-family: 'Courier New', Courier, monospace; font-size: 0.85rem; border: 1px solid #3e4451; width: calc(100% + 1.5rem);">
         <code>
         -- Manually appending the missing April 2025 data to the master table
