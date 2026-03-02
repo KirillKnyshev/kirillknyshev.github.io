@@ -103,36 +103,36 @@
                     <strong>Logic:</strong> Trips under 1 minute often represent maintenance checks or users encountering docking issues. I chose to label these as "False Starts" rather than deleting them immediately, allowing for a cleaner analysis of "Real Rides" while maintaining a full audit trail.</p></li>
             <li><strong>Data Aggregation & Optimization:</strong> To stay within Tableau's 1GB limit and ensure dashboard responsiveness, I aggregated the 5.5M+ rows into a summary table. I filtered for "Real Rides," extracted temporal features (Month, Season, Hour), and pre-calculated metrics.</li>
             
-            <pre style="background: #282c34; color: #abb2bf; padding: 1.5rem; border-radius: 8px; overflow-x: auto; margin: 1rem 0 1rem -1.5rem; font-family: 'Courier New', Courier, monospace; font-size: 0.85rem; border: 1px solid #3e4451; width: calc(100% + 1.5rem);">
-            <code>
-            -- Creating the final optimized table for Tableau
+        <pre style="background: #282c34; color: #abb2bf; padding: 1.5rem; border-radius: 8px; overflow-x: auto; margin: 1rem 0 1rem -1.5rem; font-family: 'Courier New', Courier, monospace; font-size: 0.85rem; border: 1px solid #3e4451; width: calc(100% + 1.5rem);">
+        <code>
+        -- Creating the final optimized table for Tableau
             SELECT 
-                member_casual, 
-                rideable_type, 
-                day_of_week, 
-                FORMAT_TIMESTAMP('%B', started_at) AS month_name,
-                -- 1. Categorizing Seasons
-            CASE 
-                WHEN FORMAT_TIMESTAMP('%B', started_at) IN ('December', 'January', 'February') THEN 'Winter'
-                WHEN FORMAT_TIMESTAMP('%B', started_at) IN ('March', 'April', 'May') THEN 'Spring'
-                WHEN FORMAT_TIMESTAMP('%B', started_at) IN ('June', 'July', 'August') THEN 'Summer'
-                ELSE 'Fall' 
-            END AS season,
-            -- 2. Extracting Peak Hours
-            EXTRACT(HOUR FROM started_at) AS start_hour,
-            start_station_name, start_lat, start_lng,
-            -- 3. Pre-calculating Aggregates
-            COUNT(*) AS total_trips,
-            ROUND(AVG(ride_length_minutes), 2) AS avg_duration_mins
-            FROM `case-studies-478607.case_study_ggle.all_trips_v2`
-            WHERE trip_type = 'Real Ride'
-            GROUP BY 1, 2, 3, 4, 5, 6, 7, 8, 9;
-             </code>
-            </pre>
+            member_casual, 
+            rideable_type, 
+            day_of_week, 
+            FORMAT_TIMESTAMP('%B', started_at) AS month_name,
+            -- 1. Categorizing Seasons
+        CASE 
+            WHEN FORMAT_TIMESTAMP('%B', started_at) IN ('December', 'January', 'February') THEN 'Winter'
+            WHEN FORMAT_TIMESTAMP('%B', started_at) IN ('March', 'April', 'May') THEN 'Spring'
+            WHEN FORMAT_TIMESTAMP('%B', started_at) IN ('June', 'July', 'August') THEN 'Summer'
+            ELSE 'Fall' 
+        END AS season,
+        -- 2. Extracting Peak Hours
+        EXTRACT(HOUR FROM started_at) AS start_hour,
+        start_station_name, start_lat, start_lng,
+        -- 3. Pre-calculating Aggregates
+        COUNT(*) AS total_trips,
+        ROUND(AVG(ride_length_minutes), 2) AS avg_duration_mins
+        FROM `case-studies-478607.case_study_ggle.all_trips_v2`
+        WHERE trip_type = 'Real Ride'
+        GROUP BY 1, 2, 3, 4, 5, 6, 7, 8, 9;
+        </code>
+        </pre>
             
             <li><strong>Storage Optimization & Error Tracking:</strong> To stay under Tableau’s 1GB limit, I separated "False Starts" into a distinct summary table. This allowed me to analyze system friction (failed unlocks) without bloating the primary analysis dataset.</li>
             
-    <pre style="background: #282c34; color: #abb2bf; padding: 1.5rem; border-radius: 8px; overflow-x: auto; margin: 1rem 0 1rem -1.5rem; font-family: 'Courier New', Courier, monospace; font-size: 0.85rem; border: 1px solid #3e4451; width: calc(100% + 1.5rem);">
+    <pre style="background: #282c34; color: #abb2bf; padding: 0.5rem; border-radius: 4px; overflow-x: auto; margin: 1rem 0 1rem -1.5rem; font-family: 'Courier New', Courier, monospace; font-size: 0.85rem; border: 1px solid #3e4451; width: calc(100% + 1.5rem);">
     <code>
     -- Aggregating False Starts to analyze docking/technical friction
     SELECT   
