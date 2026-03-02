@@ -27,7 +27,7 @@
         </div>
     </section>
 
-    <div style="max-width: 800px; margin: 0 auto; padding: 2rem 5%;">
+    <div style="max-width: 1000px; margin: 0 auto; padding: 2rem 5%;">
         <h2 style="margin-top: 0;">Project Overview</h2>
         <p>As a junior data analyst at Cyclistic, a fictional bike-share company in Chicago, I was tasked with answering a key business question: How do annual members and casual riders use Cyclistic bikes differently?  The goal is to provide data-backed insights to help the Director of Marketing, Lily Moreno, design strategies to convert casual riders into profitable annual members.</p>
         
@@ -39,14 +39,27 @@
         <h2 style="margin-top: 2rem;">The Process</h2>
         <p>To ensure the data was clean, consistent, and ready for analysis, I followed these steps:</p>
         <ul style="text-align: left; margin-left: 1.5rem;">
-            <li><strong>Data Consolidation:</strong> Merged 12 months of historical trip data (spanning over 5.7 million rows) into a single master table using SQL <code>UNION ALL</code> in Google BigQuery[cite: 1, 2].</li>
+            <li><strong>Data Consolidation & Auditing:</strong> I streamlined the ingestion process by batch-loading 12 monthly CSVs from Google Cloud Storage into BigQuery. Upon auditing the record counts, I identified that the April 2025 dataset failed to append correctly.</li>
+
+                <pre style="background: #282c34; color: #abb2bf; padding: 1.5rem; border-radius: 8px; overflow-x: auto; margin: 1rem 0; font-family: 'Courier New', Courier, monospace; font-size: 0.9rem; border: 1px solid #3e4451;">
+                <code>
+                    -- Fixing the data gap: Merging the missing April data with the main dataset
+                    INSERT INTO `cyclistic_data.combined_trips`
+                    SELECT * FROM `cyclistic_data.april_2023_temp`
+                    WHERE drive_id NOT IN (SELECT drive_id FROM `cyclistic_data.combined_trips`);
+
+                    -- Final verification of total row count (5.7M+)
+                    SELECT COUNT(*) FROM `cyclistic_data.combined_trips`;
+                </code>
+                </pre>
+            
             <li><strong>Integrity Check:</strong> Identified a data gap for April 2023 where rows were missing; resolved this by performing a targeted <code>INSERT</code> from the original source CSV to restore seasonal accuracy.</li>
             <li><strong>Data Transformation:</strong> Created new columns for <code>ride_length</code> (calculated as the difference between start and end times) and <code>day_of_week</code> to enable time-based behavioral analysis.</li>
             <li><strong>Data Cleaning:</strong> Filtered out "False Starts" (rides under 60 seconds) and maintenance entries where <code>start_station_name</code> was missing or listed as a test station to prevent skewing the results.</li>
         </ul>
 
         <h2 style="margin-top: 2rem;">Key Insights & Results</h2>
-        <ul style="text-align: left; margin-left: 1.5 rem;">
+        <ul style="text-align: left; margin-left: 1.5rem;">
             <li><strong>User Behavior:</strong> Identified that casual riders take significantly longer trips (leisure-focused) while members show consistent, shorter peaks during weekday commute hours.</li>
             <li><strong>Geographic Hotspots:</strong> Visualized high-density start stations for casual riders near the Chicago lakefront, providing prime locations for targeted marketing.</li>
             <li><strong>Seasonal Impact:</strong> Discovered a sharp decline in casual ridership during winter months, leading to a recommendation for spring-focused membership conversion campaigns.</li>
