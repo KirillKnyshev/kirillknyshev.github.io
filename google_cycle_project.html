@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cyclistic Bike-Share: A Comparative Analysis of User Behavior | Kirill Knyshev</title>
+    <title>Cyclistic User Analysis & Strategy | Kirill Knyshev</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -15,11 +15,11 @@
 
     <section id="project-header" style="padding-top: 2rem; padding-bottom: 0; align-items: center; text-align: center;">
         <p class="section__label" style="margin-bottom: 0.2rem;">Case Study</p>
-        <h1 class="title" style="margin-bottom: 0.8rem; font-size: 3rem;">Cyclistic Bike-Share: A Comparative Analysis of User Behavior</h1>
+        <h1 class="title" style="margin-bottom: 0.8rem; font-size: 3rem;">Cyclistic User Analysis & Strategy</h1>
         
         <div class="btn-container" style="margin-top: 0; margin-bottom: 1.5rem; display: flex; justify-content: center; gap: 1rem;">
-            <button class="btn" onclick="window.open('#', '_blank')">View GitHub</button>
-            <button class="btn" onclick="window.open('#', '_blank')">Live Dashboard</button>
+            <button class="btn" onclick="window.open('https://github.com/KirillKnyshev/kirillknyshev.github.io', '_blank')">View GitHub</button>
+            <button class="btn" onclick="window.open('https://public.tableau.com/app/profile/kirill.knyshev/viz/CyclisticCaseStudy-InProgress/CyclisticSummary#1', '_blank')">Live Dashboard</button>
         </div>
 
         <div class="section__pic-container" style="width: 80%; max-width: 800px; margin: 0 auto;">
@@ -29,23 +29,35 @@
 
     <div style="max-width: 800px; margin: 0 auto; padding: 2rem 5%;">
         <h2 style="margin-top: 0;">Project Overview</h2>
-        <p>A retail company needed to identify which regions had declining profit margins despite rising sales volume. The goal was to pinpoint inefficiencies in the logistics network and provide actionable insights for stakeholders.</p>
-
-        <div class="section__pic-container" style="margin: 3rem 0;">
-            <img src="images/data-visual.jpg" alt="Data Analysis Visual" style="width: 100%; height: auto; border-radius: 2rem;" />
-            <p style="font-size: 0.9rem; color: #555; margin-top: 0.5rem; text-align: center;">* Visual representation of regional profit margin trends.</p>
-        </div>
-
+        <p>As a junior data analyst at Cyclistic, a fictional bike-share company in Chicago, I was tasked with answering a key business question: How do annual members and casual riders use Cyclistic bikes differently?  The goal is to provide data-backed insights to help the Director of Marketing, Lily Moreno, design strategies to convert casual riders into profitable annual members.</p>
+        
         <h2 style="margin-top: 2rem;">Tools & Technology</h2>
-        <p><strong>SQL:</strong> Data extraction and cleaning of 50,000+ records.<br>
-           <strong>Python:</strong> Exploratory Data Analysis using Pandas and Seaborn.<br>
-           <strong>Tableau:</strong> Final executive dashboard for stakeholders.</p>
+        <p><strong>SQL (BigQuery):</strong> Processed and cleaned over 5.7 million rows of historical trip data, including data merging (UNION) and handling missing April datasets. <br>
+           <strong>Tableau:</strong> Designed an interactive executive dashboard featuring ride heatmaps, hourly usage trends, and seasonal analysis. <br>
+           <strong>Spreadsheets:</strong> Performed initial data validation and documented cleaning steps for stakeholder transparency.</p>
+
+        <h2 style="margin-top: 2rem;">The Process</h2>
+        <p>To ensure the data was clean, consistent, and ready for analysis, I followed these steps:</p>
+        <ul style="text-align: left; margin-left: 1.5rem;">
+            <li><strong>Data Consolidation:</strong> Merged 12 months of historical trip data (spanning over 5.7 million rows) into a single master table using SQL <code>UNION ALL</code> in Google BigQuery[cite: 1, 2].</li>
+            <li><strong>Integrity Check:</strong> Identified a data gap for April 2023 where rows were missing; resolved this by performing a targeted <code>INSERT</code> from the original source CSV to restore seasonal accuracy.</li>
+            <li><strong>Data Transformation:</strong> Created new columns for <code>ride_length</code> (calculated as the difference between start and end times) and <code>day_of_week</code> to enable time-based behavioral analysis.</li>
+            <li><strong>Data Cleaning:</strong> Filtered out "False Starts" (rides under 60 seconds) and maintenance entries where <code>start_station_name</code> was missing or listed as a test station to prevent skewing the results.</li>
+        </ul>
 
         <h2 style="margin-top: 2rem;">Key Insights & Results</h2>
+        <ul style="text-align: left; margin-left: 1.5 rem;">
+            <li><strong>User Behavior:</strong> Identified that casual riders take significantly longer trips (leisure-focused) while members show consistent, shorter peaks during weekday commute hours.</li>
+            <li><strong>Geographic Hotspots:</strong> Visualized high-density start stations for casual riders near the Chicago lakefront, providing prime locations for targeted marketing.</li>
+            <li><strong>Seasonal Impact:</strong> Discovered a sharp decline in casual ridership during winter months, leading to a recommendation for spring-focused membership conversion campaigns.</li>
+        </ul>
+
+        <h2 style="margin-top: 2rem;">Final Recommendations</h2>
+        <p>Based on the analysis, here are the top three strategic recommendations to convert casual riders into annual members:</p>
         <ul style="text-align: left; margin-left: 1.5rem;">
-            <li><strong>Identified Loss:</strong> Found a 12% profit margin leak in the Midwest region due to inefficient shipping routes.</li>
-            <li><strong>Optimization:</strong> Proposed new logistics logic that saves an estimated $15,000 monthly.</li>
-            <li><strong>Automation:</strong> Created a recurring SQL script that updates the sales dashboard automatically every 24 hours.</li>
+            <li><strong>Digital Marketing at "Leisure Hotspots":</strong> Focus social media and email campaigns on the top-performing stations identified in the <a href="https://public.tableau.com/app/profile/kirill.knyshev/viz/CyclisticCaseStudy-InProgress/CyclisticSummary#1" target="_blank">Ride Heatmap</a>, specifically near the lakefront and tourist attractions where casual usage is highest.</li>
+            <li><strong>Weekend-to-Weekday Membership Trials:</strong> Since casual riders peak on weekends, offer a "Weekend Member" trial that provides discounted weekday rates, encouraging them to test the bikes for daily commuting—the primary behavior of annual members[cite: 2].</li>
+            <li><strong>Seasonal "Spring-Start" Promotions:</strong> Launch targeted conversion campaigns in late March and April to coincide with the identified seasonal surge in ridership, offering a "First Year Member" discount for new sign-ups during the spring transition[cite: 2].</li>
         </ul>
     </div>
 
