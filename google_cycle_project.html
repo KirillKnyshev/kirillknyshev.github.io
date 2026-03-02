@@ -43,11 +43,11 @@
             <li><strong>Data Consolidation & Auditing:</strong> I streamlined the ingestion process by batch-loading 12 monthly CSVs from Google Cloud Storage into BigQuery. Upon auditing the record counts, I identified that the April 2025 dataset failed to append correctly.</li>
 
         <div style="background-color: #f8f9fa; border-left: 5px solid #007bff; padding: 1.5rem; margin: 2rem 0; border-radius: 5px;">
-            <h4 style="margin-top: 0; color: #007bff;">🛠️ Technical Note: Resolving the "April Data Gap"</h4>
-            <p style="font-size: 0.95rem; line-height: 1.6;">
-            During the automated ingestion of 5.7M rows, my initial data audit revealed a significant volume discrepancy. By running a <code>COUNT(*)</code> grouped by month, I identified that the <strong>April 2025</strong> dataset (<code>202504-divvy-tripdata</code>) had failed to append. </p>
-            <p style="font-size: 0.95rem; line-height: 1.6; margin-bottom: 0;">
-            <strong>The Solution:</strong> I performed a manual schema-matched upload for the missing month and used a SQL validation script to ensure no duplicate records were created. This maintained the integrity of the 12-month rolling window required for accurate seasonal trend analysis.</p>
+        <h4 style="margin-top: 0; color: #007bff;">🛠️ Technical Note: Resolving the "April Data Gap"</h4>
+        <p style="font-size: 0.95rem; line-height: 1.6;">
+        During the automated ingestion of 5.7M rows, my initial data audit revealed a significant volume discrepancy. By running a <code>COUNT(*)</code> grouped by month, I identified that the <strong>April 2025</strong> dataset (<code>202504-divvy-tripdata</code>) had failed to append. </p>
+        <p style="font-size: 0.95rem; line-height: 1.6; margin-bottom: 0;">
+        <strong>The Solution:</strong> I performed a manual schema-matched upload for the missing month and used a SQL validation script to ensure no duplicate records were created. This maintained the integrity of the 12-month rolling window required for accurate seasonal trend analysis.</p>
         </div>
             
         <pre style="background: #282c34; color: #abb2bf; padding: 1.0rem; border-radius: 8px; overflow-x: auto; margin: 1rem 0 1rem -1.5rem; font-family: 'Courier New', Courier, monospace; font-size: 0.85rem; border: 1px solid #3e4451; width: calc(100% + 1.5rem);">
@@ -85,9 +85,9 @@
 
         <div style="background-color: #fff4e5; border-left: 5px solid #ffa000; padding: 1rem; margin: 1rem 0 2rem -1.5rem; width: calc(100% + 1.5rem); border-radius: 4px;">
         <p style="font-size: 0.9rem; margin: 0; color: #663c00;">
-            <strong>💡 Analytic Justification:</strong> 
-            While the audit identified over 1.2M records with missing <code>end_station_name</code>, I made the strategic decision to <strong>preserve this data</strong>. 
-            Because these records still contained accurate timestamps and GPS coordinates, they remain vital for calculating total trip volumes and average durations. Deleting 20% of the dataset would have resulted in a significant underestimation of total system usage.</p>
+        <strong>💡 Analytic Justification:</strong> 
+        While the audit identified over 1.2M records with missing <code>end_station_name</code>, I made the strategic decision to <strong>preserve this data</strong>. 
+        Because these records still contained accurate timestamps and GPS coordinates, they remain vital for calculating total trip volumes and average durations. Deleting 20% of the dataset would have resulted in a significant underestimation of total system usage.</p>
         </div>
             
             <li><strong>Advanced Transformation & Imputation:</strong> To preserve data volume, I chose not to delete rows with missing station names. Instead, I used <code>IFNULL</code> to categorize them, while simultaneously calculating trip durations and extracting calendar data.</li>
@@ -209,6 +209,11 @@
         </ul>
     </div>
 
+    <h2 style="margin-top: 3rem;">Conclusion & Personal Growth</h2>
+    <p>This project was a deep dive into the realities of large-scale data analysis. Beyond mastering 
+    <strong>BigQuery SQL</strong> and <strong>Tableau</strong>, I learned the importance of <em>Data Auditing</em>—specifically how to identify and recover from ingestion errors like the missing April dataset.</p>
+    <p>By making strategic decisions to preserve "imperfect" data (handling 1.2M NULLs) rather than deleting it, I was able to provide a more accurate representation of Cyclistic’s total system usage. This case study reflects my ability to bridge the gap between technical data cleaning and actionable business strategy.</p>
+    
     <section id="more-projects" style="padding: 4rem 5%; border-top: 1px solid var(--border-color); background-color: #ffffff;">
         <h2 class="title" style="font-size: 2rem; margin-bottom: 2rem; text-align: center;">Explore More Projects</h2>
         
