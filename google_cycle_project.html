@@ -41,69 +41,69 @@
         <ul style="text-align: left; margin-left: 1.5rem;">
             <li><strong>Data Consolidation & Auditing:</strong> I streamlined the ingestion process by batch-loading 12 monthly CSVs from Google Cloud Storage into BigQuery. Upon auditing the record counts, I identified that the April 2025 dataset failed to append correctly.</li>
 
-            <pre style="background: #282c34; color: #abb2bf; padding: 1.5rem; border-radius: 8px; overflow-x: auto; margin: 1rem 0; font-family: 'Courier New', Courier, monospace; font-size: 0.9rem; border: 1px solid #3e4451;">
-                <code>
-                  -- Manually appending the missing April 2025 data to the master table
-                    INSERT INTO `case-studies-478607.case_study_ggle.all_trips`
-                    SELECT * FROM `case-studies-478607.case_study_ggle.202504_divvy_tripdata`;
+        <pre style="background: #282c34; color: #abb2bf; padding: 1.0rem; border-radius: 8px; overflow-x: auto; margin: 1rem 0 1rem -1.5rem; font-family: 'Courier New', Courier, monospace; font-size: 0.85rem; border: 1px solid #3e4451; width: calc(100% + 1.5rem);">
+        <code>
+        -- Manually appending the missing April 2025 data to the master table
+        INSERT INTO `case-studies-478607.case_study_ggle.all_trips`
+        SELECT * FROM `case-studies-478607.case_study_ggle.202504_divvy_tripdata`;
                     
-                    -- Verifying total record count (Result: 5.55M rows)
-                    SELECT COUNT(*) FROM `case-studies-478607.case_study_ggle.all_trips`;
-                </code>
-            </pre>
+        -- Verifying total record count (Result: 5.55M rows)
+        SELECT COUNT(*) FROM `case-studies-478607.case_study_ggle.all_trips`;
+        </code>
+        </pre>
             
             <li><strong>Data Quality Audit:</strong> After encountering significant performance lag in Excel due to the 5.5M+ row count, I migrated the audit process to BigQuery. I wrote a comprehensive validation script to identify missing values (NULLs) and anomalies across all key fields.</li>
 
-            <pre style="background: #282c34; color: #abb2bf; padding: 1.5rem; border-radius: 8px; overflow-x: auto; margin: 1rem 0; font-family: 'Courier New', Courier, monospace; font-size: 0.9rem; border: 1px solid #3e4451;">
-                <code>
-                    -- Auditing data for NULLs and short trips
-                    SELECT 
-                        COUNT(*) AS total_rows,
-                        COUNTIF(ride_id IS NULL) AS missing_ids,
-                        COUNTIF(started_at IS NULL OR ended_at IS NULL) AS missing_timestamps,
-                        COUNTIF(start_station_name IS NULL) AS null_start_stations,
-                        COUNTIF(end_station_name IS NULL) AS null_end_stations,
-                        -- Identifying 'False Starts' (trips under 60 seconds)
-                        COUNTIF(TIMESTAMP_DIFF(ended_at, started_at, SECOND) <= 60) AS short_trips_under_60s
-                    FROM `case-studies-478607.case_study_ggle.all_trips`;
-                </code>
-            </pre>
+        <pre style="background: #282c34; color: #abb2bf; padding: 1.0rem; border-radius: 8px; overflow-x: auto; margin: 1rem 0 1rem -1.5rem; font-family: 'Courier New', Courier, monospace; font-size: 0.85rem; border: 1px solid #3e4451; width: calc(100% + 1.5rem);">
+        <code>
+        -- Auditing data for NULLs and short trips
+        SELECT 
+        COUNT(*) AS total_rows,
+        COUNTIF(ride_id IS NULL) AS missing_ids,
+        COUNTIF(started_at IS NULL OR ended_at IS NULL) AS missing_timestamps,
+        COUNTIF(start_station_name IS NULL) AS null_start_stations,
+        COUNTIF(end_station_name IS NULL) AS null_end_stations,
+        -- Identifying 'False Starts' (trips under 60 seconds)
+        COUNTIF(TIMESTAMP_DIFF(ended_at, started_at, SECOND) <= 60) AS short_trips_under_60s
+        FROM `case-studies-478607.case_study_ggle.all_trips`;
+        </code>
+        </pre>
             
             <li><strong>Advanced Transformation & Imputation:</strong> To preserve data volume, I chose not to delete rows with missing station names. Instead, I used <code>IFNULL</code> to categorize them, while simultaneously calculating trip durations and extracting calendar data.</li>
 
-            <pre style="background: #282c34; color: #abb2bf; padding: 1.5rem; border-radius: 8px; overflow-x: auto; margin: 1rem 0; font-family: 'Courier New', Courier, monospace; font-size: 0.9rem; border: 1px solid #3e4451;">
-                <code>
-                    -- Creating the final cleaned table: all_trips_v2
-                    CREATE TABLE `case-studies-478607.case_study_ggle.all_trips_v2` AS
-                    SELECT 
-                        ride_id, rideable_type, member_casual,
-                        -- 1. Handle Missing Station Names (Imputation)
-                        IFNULL(start_station_name, 'On-Street / Virtual Dock') AS start_station_name,
-                        IFNULL(end_station_name, 'On-Street / Virtual Dock') AS end_station_name,
-                        start_lat, start_lng, end_lat, end_lng, started_at, ended_at,
+        <pre style="background: #282c34; color: #abb2bf; padding: 1.0rem; border-radius: 8px; overflow-x: auto; margin: 1rem 0 1rem -1.5rem; font-family: 'Courier New', Courier, monospace; font-size: 0.85rem; border: 1px solid #3e4451; width: calc(100% + 1.5rem);">
+        <code>
+        -- Creating the final cleaned table: all_trips_v2
+        CREATE TABLE `case-studies-478607.case_study_ggle.all_trips_v2` AS
+        SELECT 
+            ride_id, rideable_type, member_casual,
+        -- 1. Handle Missing Station Names (Imputation)
+        IFNULL(start_station_name, 'On-Street / Virtual Dock') AS start_station_name,
+        IFNULL(end_station_name, 'On-Street / Virtual Dock') AS end_station_name,
+        start_lat, start_lng, end_lat, end_lng, started_at, ended_at,
                         
-                        -- 2. Calculate Ride Length in Minutes
-                        ROUND(TIMESTAMP_DIFF(ended_at, started_at, SECOND) / 60, 2) AS ride_length_minutes,
+        -- 2. Calculate Ride Length in Minutes
+        ROUND(TIMESTAMP_DIFF(ended_at, started_at, SECOND) / 60, 2) AS ride_length_minutes,
                         
-                        -- 3. Extract Day of Week for Analysis
-                        FORMAT_TIMESTAMP('%A', started_at) AS day_of_week,
+        -- 3. Extract Day of Week for Analysis
+        FORMAT_TIMESTAMP('%A', started_at) AS day_of_week,
                     
-                        -- 4. Create a Trip Type Category (Identify False Starts)
-                        CASE 
-                            WHEN TIMESTAMP_DIFF(ended_at, started_at, SECOND) <= 60 THEN 'False Start'
-                            ELSE 'Real Ride'
-                        END AS trip_type
-                    FROM `case-studies-478607.case_study_ggle.all_trips`
-                    WHERE TIMESTAMP_DIFF(ended_at, started_at, SECOND) >= 0;
-                </code>
-            </pre>
+        -- 4. Create a Trip Type Category (Identify False Starts)
+        CASE 
+            WHEN TIMESTAMP_DIFF(ended_at, started_at, SECOND) <= 60 THEN 'False Start'
+            ELSE 'Real Ride'
+        END AS trip_type
+        FROM `case-studies-478607.case_study_ggle.all_trips`
+        WHERE TIMESTAMP_DIFF(ended_at, started_at, SECOND) >= 0;
+        </code>
+        </pre>
             
             <li><strong>Defining "False Starts":</strong> I implemented a 60-second threshold to identify non-journey data. 
                 <p style="font-size: 0.9rem; font-style: italic; color: #555; margin-top: 0.5rem;">
                     <strong>Logic:</strong> Trips under 1 minute often represent maintenance checks or users encountering docking issues. I chose to label these as "False Starts" rather than deleting them immediately, allowing for a cleaner analysis of "Real Rides" while maintaining a full audit trail.</p></li>
             <li><strong>Data Aggregation & Optimization:</strong> To stay within Tableau's 1GB limit and ensure dashboard responsiveness, I aggregated the 5.5M+ rows into a summary table. I filtered for "Real Rides," extracted temporal features (Month, Season, Hour), and pre-calculated metrics.</li>
             
-        <pre style="background: #282c34; color: #abb2bf; padding: 1.5rem; border-radius: 8px; overflow-x: auto; margin: 1rem 0 1rem -1.5rem; font-family: 'Courier New', Courier, monospace; font-size: 0.85rem; border: 1px solid #3e4451; width: calc(100% + 1.5rem);">
+        <pre style="background: #282c34; color: #abb2bf; padding: 1.0rem; border-radius: 8px; overflow-x: auto; margin: 1rem 0 1rem -1.5rem; font-family: 'Courier New', Courier, monospace; font-size: 0.85rem; border: 1px solid #3e4451; width: calc(100% + 1.5rem);">
         <code>
         -- Creating the final optimized table for Tableau
             SELECT 
@@ -132,7 +132,7 @@
             
             <li><strong>Storage Optimization & Error Tracking:</strong> To stay under Tableau’s 1GB limit, I separated "False Starts" into a distinct summary table. This allowed me to analyze system friction (failed unlocks) without bloating the primary analysis dataset.</li>
             
-        <pre style="background: #282c34; color: #abb2bf; padding: 0.5rem; border-radius: 4px; overflow-x: auto; margin: 1rem 0 1rem -1.5rem; font-family: 'Courier New', Courier, monospace; font-size: 0.85rem; border: 1px solid #3e4451; width: calc(100% + 1.5rem);">
+        <pre style="background: #282c34; color: #abb2bf; padding: 1.0rem; border-radius: 8px; overflow-x: auto; margin: 1rem 0 1rem -1.5rem; font-family: 'Courier New', Courier, monospace; font-size: 0.85rem; border: 1px solid #3e4451; width: calc(100% + 1.5rem);">
         <code>
         -- Aggregating False Starts to analyze docking/technical friction
         SELECT   
