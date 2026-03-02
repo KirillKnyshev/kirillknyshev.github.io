@@ -103,7 +103,7 @@
                     <strong>Logic:</strong> Trips under 1 minute often represent maintenance checks or users encountering docking issues. I chose to label these as "False Starts" rather than deleting them immediately, allowing for a cleaner analysis of "Real Rides" while maintaining a full audit trail.</p></li>
             <li><strong>Data Aggregation & Optimization:</strong> To stay within Tableau's 1GB limit and ensure dashboard responsiveness, I aggregated the 5.5M+ rows into a summary table. I filtered for "Real Rides," extracted temporal features (Month, Season, Hour), and pre-calculated metrics.</li>
             
-            <pre style="background: #282c34; color: #abb2bf; padding: 1.5rem; border-radius: 8px; overflow-x: auto; margin: 1rem 0; font-family: 'Courier New', Courier, monospace; font-size: 0.9rem; border: 1px solid #3e4451;">
+            <pre style="background: #282c34; color: #abb2bf; padding: 1.0rem; border-radius: 4px; overflow-x: auto; margin: 1rem 0; font-family: 'Courier New', Courier, monospace; font-size: 0.9rem; border: 1px solid #3e4451;">
                 <code>
                     -- Creating the final optimized table for Tableau
                     SELECT 
@@ -134,15 +134,15 @@
             
             <pre style="background: #282c34; color: #abb2bf; padding: 1.5rem; border-radius: 8px; overflow-x: auto; margin: 1rem 0; font-family: 'Courier New', Courier, monospace; font-size: 0.9rem; border: 1px solid #3e4451;">
             <code>
-                    -- Aggregating False Starts to analyze docking/technical friction
-                    SELECT   
-                        member_casual, 
-                        rideable_type, 
-                        day_of_week, 
-                        COUNT(*) AS total_false_starts
-                    FROM `case-studies-478607.case_study_ggle.all_trips_v2`
-                    WHERE trip_type = 'False Start'
-                    GROUP BY 1, 2, 3;
+            -- Aggregating False Starts to analyze docking/technical friction
+            SELECT   
+                member_casual, 
+                rideable_type, 
+                day_of_week, 
+            COUNT(*) AS total_false_starts
+            FROM `case-studies-478607.case_study_ggle.all_trips_v2`
+            WHERE trip_type = 'False Start'
+            GROUP BY 1, 2, 3;
             </code>
             </pre>
             
