@@ -132,19 +132,19 @@
             
             <li><strong>Storage Optimization & Error Tracking:</strong> To stay under Tableau’s 1GB limit, I separated "False Starts" into a distinct summary table. This allowed me to analyze system friction (failed unlocks) without bloating the primary analysis dataset.</li>
             
-    <pre style="background: #282c34; color: #abb2bf; padding: 0.5rem; border-radius: 4px; overflow-x: auto; margin: 1rem 0 1rem -1.5rem; font-family: 'Courier New', Courier, monospace; font-size: 0.85rem; border: 1px solid #3e4451; width: calc(100% + 1.5rem);">
-    <code>
-    -- Aggregating False Starts to analyze docking/technical friction
-    SELECT   
-        member_casual, 
-        rideable_type, 
-        day_of_week, 
-    COUNT(*) AS total_false_starts
-    FROM `case-studies-478607.case_study_ggle.all_trips_v2`
-    WHERE trip_type = 'False Start'
-    GROUP BY 1, 2, 3;
-    </code>
-    </pre>
+        <pre style="background: #282c34; color: #abb2bf; padding: 0.5rem; border-radius: 4px; overflow-x: auto; margin: 1rem 0 1rem -1.5rem; font-family: 'Courier New', Courier, monospace; font-size: 0.85rem; border: 1px solid #3e4451; width: calc(100% + 1.5rem);">
+        <code>
+        -- Aggregating False Starts to analyze docking/technical friction
+        SELECT   
+            member_casual, 
+            rideable_type, 
+            day_of_week, 
+        COUNT(*) AS total_false_starts
+         FROM `case-studies-478607.case_study_ggle.all_trips_v2`
+        WHERE trip_type = 'False Start'
+        GROUP BY 1, 2, 3;
+        </code>
+        </pre>
             
             <div style="text-align: center; margin: 1.5rem 0;">
                 <img src="images/google_cycle_project/bigquery_audit_results.png" alt="BigQuery Query Results" style="width: 100%; max-width: 600px; border: 1px solid #ddd; border-radius: 8px;">
