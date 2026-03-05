@@ -30,7 +30,8 @@
 
     <div style="max-width: 1000px; margin: 0 auto; padding: 2rem 5%;">
         <h2 style="margin-top: 0;">Project Overview</h2>
-        <p>As a junior data analyst at Cyclistic, a fictional bike-share company in Chicago, I was tasked with answering a key business question: How do annual members and casual riders use Cyclistic bikes differently?  The goal is to provide data-backed insights to help the Director of Marketing, Lily Moreno, design strategies to convert casual riders into profitable annual members.</p>
+        <p>As a junior analyst at Cyclistic, I was asked to tackle a challenge that’s central to our growth: how do we turn weekend explorers into daily commuters? By analyzing over 5.7 million trips, 
+            I looked for the tipping point, the specific behaviors that distinguish our casual riders from our loyal annual members. My goal was to hand the marketing team a roadmap for high-impact conversion strategies.</p>
         
         <h2 style="margin-top: 2rem;">Tools & Technology</h2>
         <p><strong>SQL (BigQuery):</strong> Processed and cleaned over 5.7 million rows of historical trip data, including data merging (UNION) and handling missing April datasets. <br>
@@ -40,14 +41,15 @@
         <h2 style="margin-top: 2rem;">The Process</h2>
         <p>To ensure the data was clean, consistent, and ready for analysis, I followed these steps:</p>
         <ul style="text-align: left; margin-left: 1.5rem;">
-            <li><strong>Data Consolidation & Auditing:</strong> I streamlined the ingestion process by batch-loading 12 monthly CSVs from Google Cloud Storage into BigQuery. Upon auditing the record counts, I identified that the April 2025 dataset failed to append correctly.</li>
+            <li><strong>Data Consolidation & Auditing:</strong> I streamlined the ingestion process by batch-loading 12 monthly CSVs from Google Cloud Storage into BigQuery. Upon auditing the record counts, I identified that the April 2025 dataset failed to load correctly.</li>
 
         <div style="background-color: #f8f9fa; border-left: 5px solid #007bff; padding: 1.5rem; margin: 2rem 0; border-radius: 5px;">
         <h4 style="margin-top: 0; color: #007bff;">🛠️ Technical Note: Resolving the "April Data Gap"</h4>
         <p style="font-size: 0.95rem; line-height: 1.6;">
-        During the automated ingestion of 5.7M rows, my initial data audit revealed a significant volume discrepancy. By running a <code>COUNT(*)</code> grouped by month, I identified that the <strong>April 2025</strong> dataset (<code>202504-divvy-tripdata</code>) had failed to append. </p>
+        While auditing the initial ingestion of 5.7M rows, I noticed the total volume looked lower than expected. To hunt down the leak, I ran a <code>COUNT(*)</code> grouped by month, and there it was, the <strong>April 2025</strong> dataset (<code>202504-divvy-tripdata</code>) had completely failed to append during the automated load.</p>
         <p style="font-size: 0.95rem; line-height: 1.6; margin-bottom: 0;">
-        <strong>The Solution:</strong> I performed a manual schema-matched upload for the missing month and used a SQL validation script to ensure no duplicate records were created. This maintained the integrity of the 12-month rolling window required for accurate seasonal trend analysis.</p>
+        <strong>The Solution:</strong> Instead of re-running the entire automation, I performed a manual schema-matched upload specifically for the April records. To be safe, I followed this up with a SQL validation script to cross-reference the counts and ensure I hadn't introduced any duplicates. 
+            This extra step was vital; without that April data, my seasonal trend analysis would have shown a "fake" dip in spring ridership, leading to totally inaccurate business advice.</p>
         </div>
             
         <pre style="background: #282c34; color: #abb2bf; padding: 1.0rem; border-radius: 8px; overflow-x: auto; margin: 1rem 0 1rem -1.5rem; font-family: 'Courier New', Courier, monospace; font-size: 0.85rem; border: 1px solid #3e4451; width: calc(100% + 1.5rem);">
