@@ -57,112 +57,79 @@
             
         <pre style="background: #282c34; color: #abb2bf; padding: 1.0rem; border-radius: 8px; overflow-x: auto; margin: 1rem 0 1rem -1.5rem; font-family: 'Courier New', Courier, monospace; font-size: 0.85rem; border: 1px solid #3e4451; width: calc(100% + 1.5rem);">
         <code>
-        -- Union the missing April 2025 data with the main table
-        INSERT INTO `case-studies-478607.case_study_ggle.all_trips`
-        SELECT * FROM `case-studies-478607.case_study_ggle.202504_divvy_tripdata`;
-                    
-        -- Verifying total record count (Result: 5.55M rows)
-        SELECT COUNT(*) FROM `case-studies-478607.case_study_ggle.all_trips`;
+        -- Identifying commercial outliers (Customers buying 200+ packs)
+        CREATE OR REPLACE TABLE `case-studies-478607.quantium_analysis.clean_transactions_data` AS
+        SELECT * 
+        FROM `case-studies-478607.quantium_analysis.clean_transactions_data`
+        WHERE PROD_QTY >= 200;
+
+        -- Removing the outlier (Loyalty Card 226000) for clean analysis
+        CREATE OR REPLACE TABLE `case-studies-478607.quantium_analysis.clean_transactions_data` AS
+        SELECT * 
+        FROM `case-studies-478607.quantium_analysis.clean_transactions_data`
+        WHERE LYLTY_CARD_NBR = 226000;
         </code>
         </pre>
             
-            <li><strong>Data Quality Audit:</strong> After encountering significant performance lag in Excel due to the 5.5M+ row count, I migrated the audit process to BigQuery. I wrote a comprehensive validation script to identify missing values (NULLs) and anomalies across all key fields.</li>
+            <li><strong>Data Cleaning & Outlier Removal:</strong>Removing these outliers was critical. Including them would have artificially inflated the "Mainstream" segment's average spend, leading to incorrect strategic recommendations.</li>
 
         <pre style="background: #282c34; color: #abb2bf; padding: 1.0rem; border-radius: 8px; overflow-x: auto; margin: 1rem 0 1rem -1.5rem; font-family: 'Courier New', Courier, monospace; font-size: 0.85rem; border: 1px solid #3e4451; width: calc(100% + 1.5rem);">
         <code>
-        -- checking for NULLs and short trips
+        -- Joining Transaction data with Customer Demographics
         SELECT 
-        COUNT(*) AS total_rows,
-        COUNTIF(ride_id IS NULL) AS missing_ids,
-        COUNTIF(started_at IS NULL OR ended_at IS NULL) AS missing_timestamps,
-        COUNTIF(start_station_name IS NULL) AS null_start_stations,
-        COUNTIF(end_station_name IS NULL) AS null_end_stations,
-            
-        -- Identifying False Starts (trips under 60 seconds)
-        COUNTIF(TIMESTAMP_DIFF(ended_at, started_at, SECOND) <= 60) AS short_trips_under_60s
-        FROM `case-studies-478607.case_study_ggle.all_trips`;
+            t.*, 
+            c.LIFESTAGE, 
+            c.PREMIUM_CUSTOMER
+        FROM `quantium-strategy.retail_data.transactions` AS t
+        LEFT JOIN `quantium-strategy.retail_data.customer_demographics` AS c
+        ON t.LYLTY_CARD_NBR = c.LYLTY_CARD_NBR;
         </code>
         </pre>
-
-        <div style="text-align: center; margin: 1.5rem 0 2rem -1.5rem; width: calc(100% + 1.5rem);">
-        <img src="google_imagies/Data Quality Audit.PNG" alt="BigQuery Query Results" style="width: 100%; max-width: 800px; border: 1px solid #ddd; border-radius: 8px; display: block; margin: 0 auto;">
-        <p style="font-size: 0.8rem; color: #777; margin-top: 0.5rem;">Figure 2:Results identifying NULLs.</p>
-        </div>
-
-        <div style="background-color: #fff4e5; border-left: 5px solid #ffa000; padding: 1rem; margin: 1rem 0 2rem -1.5rem; width: calc(100% + 1.5rem); border-radius: 4px;">
-        <p style="font-size: 0.9rem; margin: 0; color: #663c00;">
-        <strong>💡 Analytic Justification:</strong> 
-        While the audit identified over 1.2M records with missing <code>end_station_name</code>, I made the strategic decision to <strong>preserve this data</strong>. 
-        Because these records still contained accurate timestamps and GPS coordinates, they remain vital for calculating total trip volumes and average durations. Deleting 20% of the dataset would have resulted in a significant underestimation of total system usage.</p>
-        </div>
             
-            <li><strong>Advanced Transformation & Imputation:</strong> To preserve data volume, I chose not to delete rows with missing station names. Instead, I used <code>IFNULL</code> to categorize them, while simultaneously calculating trip durations and extracting calendar data.</li>
+            <li><strong>Inner Join:</strong>Joining two tables</li>
 
         <pre style="background: #282c34; color: #abb2bf; padding: 1.0rem; border-radius: 8px; overflow-x: auto; margin: 1rem 0 1rem -1.5rem; font-family: 'Courier New', Courier, monospace; font-size: 0.85rem; border: 1px solid #3e4451; width: calc(100% + 1.5rem);">
         <code>
-        -- Building the final cleaned table: all_trips_v2
-        CREATE TABLE `case-studies-478607.case_study_ggle.all_trips_v2` AS
+        -- Extracting Pack Size (Weight) and Brand from Product Name strings
         SELECT 
-            ride_id, rideable_type, member_casual,
+            PROD_NAME,
             
-        -- Missing Station Names 
-        IFNULL(start_station_name, 'On-Street / Virtual Dock') AS start_station_name,
-        IFNULL(end_station_name, 'On-Street / Virtual Dock') AS end_station_name,
-        start_lat, start_lng, end_lat, end_lng, started_at, ended_at,
-                        
-        -- Calculate Ride Length in Minutes
-        ROUND(TIMESTAMP_DIFF(ended_at, started_at, SECOND) / 60, 2) AS ride_length_minutes,
-                        
-        -- Day of the Week
-        FORMAT_TIMESTAMP('%A', started_at) AS day_of_week,
-                    
-        -- Create a Trip Type Category
-        CASE 
-            WHEN TIMESTAMP_DIFF(ended_at, started_at, SECOND) <= 60 THEN 'False Start'
-            ELSE 'Real Ride'
-        END AS trip_type
-        FROM `case-studies-478607.case_study_ggle.all_trips`
-        WHERE TIMESTAMP_DIFF(ended_at, started_at, SECOND) >= 0;
+        -- Extracting the numeric weight (e.g., '175' from 'Smiths Crinkle Chips 175g')
+            CAST(REGEXP_EXTRACT(PROD_NAME, r'(\d+)') AS INT64) AS PACK_SIZE,
+            
+        -- Splitting the string to get the first word as the Brand
+            SPLIT(PROD_NAME, ' ')[OFFSET(0)] AS BRAND_NAME,
+            TOT_SALES
+        FROM `quantium-strategy.retail_data.transactions`;
         </code>
         </pre>
             
-            <li><strong>Defining "False Starts":</strong> I implemented a 60-second threshold to identify non-journey data. 
+            <li><strong>Feature Engineering (The Calculations):</strong> Explain how you extracted the Pack Size and Brand Name from the messy product strings. This is a high-value skill. 
                 <p style="font-size: 0.9rem; font-style: italic; color: #555; margin-top: 0.5rem;">
                     <strong>Logic:</strong> Trips under 1 minute often represent maintenance checks or users encountering docking issues. I chose to label these as "False Starts" rather than deleting them immediately, allowing for a cleaner analysis of "Real Rides" while maintaining a full audit trail.</p></li>
             <li><strong>Data Aggregation & Optimization:</strong> To stay within Tableau's 1GB limit and ensure dashboard responsiveness, I aggregated the 5.5M+ rows into a summary table. I filtered for "Real Rides," extracted temporal features (Month, Season, Hour), and pre-calculated metrics.</li>
             
         <pre style="background: #282c34; color: #abb2bf; padding: 1.0rem; border-radius: 8px; overflow-x: auto; margin: 1rem 0 1rem -1.5rem; font-family: 'Courier New', Courier, monospace; font-size: 0.85rem; border: 1px solid #3e4451; width: calc(100% + 1.5rem);">
         <code>
-        -- Build the final table for Tableau
-            SELECT 
-            member_casual, 
-            rideable_type, 
-            day_of_week, 
-            FORMAT_TIMESTAMP('%B', started_at) AS month_name,
+        -- Calculating Sales Uplift for Trial Store 77 vs Control Store 233
+        SELECT 
+            STORE_NBR,
+            YEAR_MONTH,
+            SUM(TOT_SALES) AS monthly_sales,
             
-        -- Seasons
-        CASE 
-            WHEN FORMAT_TIMESTAMP('%B', started_at) IN ('December', 'January', 'February') 
-                THEN 'Winter'
-            WHEN FORMAT_TIMESTAMP('%B', started_at) IN ('March', 'April', 'May') 
-                THEN 'Spring'
-            WHEN FORMAT_TIMESTAMP('%B', started_at) IN ('June', 'July', 'August') 
-                THEN 'Summer'
-            ELSE 'Fall' 
-        END AS season,
-            
-        -- Peak Hours
-        EXTRACT(HOUR FROM started_at) AS start_hour,
-        start_station_name, start_lat, start_lng,
-            
-        -- Aggregates     
-        COUNT(*) AS total_trips,
-        ROUND(AVG(ride_length_minutes), 2) AS avg_duration_mins
-        FROM `case-studies-478607.case_study_ggle.all_trips_v2`
-        WHERE trip_type = 'Real Ride'
-        GROUP BY 1, 2, 3, 4, 5, 6, 7, 8, 9;
+        -- Percentage difference calculation
+        (SUM(TOT_SALES) - LAG(SUM(TOT_SALES)) OVER (ORDER BY YEAR_MONTH)) / 
+        LAG(SUM(TOT_SALES)) OVER (ORDER BY YEAR_MONTH) * 100 AS sales_uplift
+        FROM `quantium-strategy.retail_data.trial_results`
+        WHERE STORE_NBR IN (77, 233)
+        GROUP BY 1, 2;
         </code>
         </pre>
+            
+        <div style="text-align: center; margin: 1.5rem 0 2rem -1.5rem; width: calc(100% + 1.5rem);">
+        <img src="google_imagies/Data Quality Audit.PNG" alt="BigQuery Query Results" style="width: 100%; max-width: 800px; border: 1px solid #ddd; border-radius: 8px; display: block; margin: 0 auto;">
+        <p style="font-size: 0.8rem; color: #777; margin-top: 0.5rem;">Figure 2:Results identifying NULLs.</p>
+        </div>   
             
             <li><strong>Storage Optimization & Error Tracking:</strong> To stay under Tableau’s 1GB limit, I separated "False Starts" into a distinct summary table. This allowed me to analyze system friction (failed unlocks) without bloating the primary analysis dataset.</li>
             
@@ -218,8 +185,7 @@
 
         <h2 style="margin-top: 3rem;">Conclusion & Personal Growth</h2>
         <p>This project was a deep dive into the complexities of commercial retail data. Beyond mastering </strong>BigQuery SQL</strong> and </strong>Tableau</strong>, 
-            I learned the critical importance of the Order of Operations in data visualization—specifically how to use Context Filters to ensure "Top N" calculations remain accurate when sliced by specific dimensions like Brand.</p>
-        <p>By navigating the challenges of merging disparate datasets (transactional vs. loyalty) and identifying commercial outliers, I was able to transform raw data into a strategic roadmap for store optimization. 
+            I learned how to navigate the 'Data Quality Audit' phase—identifying and removing commercial outliers that would have otherwise skewed the entire strategic outlook. 
             This case study reflects my ability to bridge the gap between technical data engineering and actionable business growth strategies.</p>
         </ul>
     </div>
