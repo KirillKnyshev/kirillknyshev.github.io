@@ -46,12 +46,13 @@
             <li><strong>Segment Merging:</strong> Joined the transaction data with the "Life Stage" and "Premium Status" tables to understand who was buying what.</li>
 
         <div style="background-color: #f8f9fa; border-left: 5px solid #007bff; padding: 1.5rem; margin: 2rem 0; border-radius: 5px;">
-        <h4 style="margin-top: 0; color: #007bff;">🛠️ Technical Note: Resolving the "April Data Gap"</h4>
+        <h4 style="margin-top: 0; color: #007bff;">🛠️ Technical Note: Solving the "Top N" Filter Conflict"</h4>
         <p style="font-size: 0.95rem; line-height: 1.6;">
-        While auditing the initial ingestion of 5.7M rows, I noticed the total volume looked lower than expected. To hunt down the leak, I ran a <code>COUNT(*)</code> grouped by month, and there it was, the <strong>April 2025</strong> dataset (<code>202504-divvy-tripdata</code>) had completely failed to append during the automated load.</p>
+        While building the Tableau dashboard, I encountered a common technical hurdle: clicking a brand filter would cause the "Top Products" chart to go blank.</p>
         <p style="font-size: 0.95rem; line-height: 1.6; margin-bottom: 0;">
-        <strong>The Solution:</strong> Instead of re-running the entire automation, I performed a manual schema-matched upload specifically for the April records. To be safe, I followed this up with a SQL validation script to cross-reference the counts and ensure I hadn't introduced any duplicates. 
-            This extra step was vital; without that April data, my seasonal trend analysis would have shown a "fake" dip in spring ridership, leading to totally inaccurate business advice.</p>
+        <strong>The Problem:</strong> The "Top 10" filter was calculated before the Brand filter, resulting in an empty set if the selected brand wasn't in the global top 10.</p>
+        <strong>The Solution:</strong> I applied a <strong>Context Filter</strong> to the Brand field. By forcing the Brand filter into the "Context" layer, 
+            I ensured Tableau filtered for the brand first, and then calculated the Top 10 products within that specific brand—creating a truly dynamic user experience.</p>
         </div>
             
         <pre style="background: #282c34; color: #abb2bf; padding: 1.0rem; border-radius: 8px; overflow-x: auto; margin: 1rem 0 1rem -1.5rem; font-family: 'Courier New', Courier, monospace; font-size: 0.85rem; border: 1px solid #3e4451; width: calc(100% + 1.5rem);">
@@ -189,32 +190,31 @@
         <div style="display: flex; flex-wrap: wrap; gap: 2rem; align-items: center;">
             <img src="google_imagies/the_commute_gap_visual.PNG" alt="Hourly Usage Chart" style="flex: 1; min-width: 300px; max-width: 450px; border-radius: 8px; border: 1px solid #ddd;">
             <div style="flex: 1; min-width: 300px;">
-                <strong>The Commute Gap:</strong>While casual riders peak on weekends for leisure, members show heavy "Utility Usage" during weekday rush hours. 
+                <strong>The Powerhouse Segment:</strong> "Mainstream Young Singles/Couples" and "Mainstream Retirees" contribute the highest total sales volume. 
                 <p style="margin-top: 0.5rem; font-style: italic; font-size: 0.9rem; color: #555;">Impact: Marketing should pivot from 'lifestyle' ads to 'commuter efficiency' messaging for high-frequency casual users.</p>
             </div>
         </div>
         <div style="display: flex; flex-wrap: wrap; gap: 2rem; align-items: center; flex-direction: row-reverse;">
             <img src="google_imagies/the_tourist_vs_local_visual.PNG" alt="Heatmap Focus" style="flex: 1; min-width: 300px; max-width: 450px; border-radius: 8px; border: 1px solid #ddd;">
             <div style="flex: 1; min-width: 300px;">
-                <strong>Geographic Filtering:</strong>Casual usage is concentrated at tourist landmarks, whereas members are spread across residential/commercial hubs. 
+                <strong>Brand Loyalty:</strong> </strong>Smiths</strong> remains the dominant brand, but </strong>Doritos</strong> and </strong>Kettle</strong> show higher-than-average spend per transaction among premium customers. 
                 <p style="margin-top: 0.5rem; font-style: italic; font-size: 0.9rem; color: #555;">Impact: Conversion campaigns should be geo-fenced to residential 'commuter-belt' stations rather than tourist hotspots.</p>
             </div>
         </div>
         <div style="display: flex; flex-wrap: wrap; gap: 2rem; align-items: center;">
             <img src="google_imagies/the_seasonal_window_visual.PNG" alt="Seasonal Monthly Chart" style="flex: 1; min-width: 300px; max-width: 450px; border-radius: 8px; border: 1px solid #ddd;">
             <div style="flex: 1; min-width: 300px;">
-                <strong>Seasonal Conversion Window:</strong>Casual ridership is highly weather-dependent, spiking in the spring. 
+                <strong>The Trial Win:</strong> The store layout trial in Store 77 resulted in a massive </strong>+71.7% sales uplift</strong> compared to its control store during the peak month.
                 <p style="margin-top: 0.5rem; font-style: italic; font-size: 0.9rem; color: #555;">Impact: The 'Membership Drive' should be launched in April (coinciding with the April data surge identified in the audit) to capture riders as they form new habits.</p>
             </div>
         </div>
         </div>      
 
         <h2 style="margin-top: 2rem;">Final Recommendations</h2>
-        <p>Based on the analysis, here are the top three strategic recommendations to convert casual riders into annual members:</p>
         <ul style="text-align: left; margin-left: 1.5rem;">
-            <li><strong>Digital Marketing at "Leisure Hotspots":</strong> Focus social media and email campaigns on the top-performing stations identified in the <a href="https://public.tableau.com/app/profile/kirill.knyshev/viz/CyclisticCaseStudy-InProgress/CyclisticSummary#1" target="_blank">Ride Heatmap</a>, specifically near the lakefront and tourist attractions where casual usage is highest.</li>
-            <li><strong>Weekend-to-Weekday Membership Trials:</strong> Since casual riders peak on weekends, offer a "Weekend Member" trial that provides discounted weekday rates, encouraging them to test the bikes for daily commuting—the primary behavior of annual members[cite: 2].</li>
-            <li><strong>Seasonal "Spring-Start" Promotions:</strong> Launch targeted conversion campaigns in late March and April to coincide with the identified seasonal surge in ridership, offering a "First Year Member" discount for new sign-ups during the spring transition[cite: 2].</li>
+            <li><strong>Targeted Bundling::</strong> Since "Mainstream Young Singles" prefer 175g packs, launch cross-promotional bundles with dips to increase basket size.</li>
+            <li><strong>Shelf Optimization:</strong> Expand the shelf space for Smiths and Kettle in high-traffic "Mainstream" stores to maximize throughput.</li>
+            <li><strong>National Rollout:</strong> Based on the successful trial in Store 77, recommend a phased rollout of the new category layout across all high-density urban locations.</li>
 
         <h2 style="margin-top: 3rem;">Conclusion & Personal Growth</h2>
         <p>This project was a deep dive into the realities of large-scale data analysis. Beyond mastering 
