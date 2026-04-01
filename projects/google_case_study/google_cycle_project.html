@@ -234,37 +234,47 @@
         <p class="copyright-text" style="text-align: center; padding: 2rem 0;">Copyright &#169; 2026 Kirill Knyshev. All Rights Reserved.</p>
     </footer>
 
-    <script>
-        // Fetch projects from index.html and filter out the current page
-        fetch('../../index.html')
-            .then(response => response.text())
-            .then(data => {
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(data, 'text/html');
-                
-                // Get all project cards from the home page
-                const allProjects = Array.from(doc.querySelectorAll('.project-card'));
-                
-                // Identify current file name (e.g., 'project1.html')
-                const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+<script>
+    // Fetch projects from index.html and filter out the current page
+    fetch('../../index.html')
+        .then(response => response.text())
+        .then(data => {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(data, 'text/html');
+            
+            // Get all project cards from the home page
+            const allProjects = Array.from(doc.querySelectorAll('.project-card'));
+            
+            // Identify current file name
+            const currentPage = window.location.pathname.split('/').pop() || 'index.html';
 
-                // Filter out the project card that links to this page
-                const filteredProjects = allProjects.filter(project => {
-                    const projectLink = project.getAttribute('onclick') || "";
-                    return !projectLink.includes(currentPage);
-                });
-
-                const gridContainer = document.getElementById('dynamic-project-grid');
-                gridContainer.innerHTML = ''; // Clear loading text
+            const gridContainer = document.getElementById('dynamic-project-grid');
+            gridContainer.innerHTML = ''; // Clear loading text
+            
+            allProjects.forEach(project => {
+                const projectLink = project.getAttribute('onclick') || "";
                 
-                filteredProjects.forEach(project => {
+                // 1. Filter out the project card that links to THIS page
+                if (!projectLink.includes(currentPage)) {
+                    
+                    // 2. FIX THE IMAGE PATHS:
+                    // Find any images inside the card and add ../../ to the front of their src
+                    const images = project.querySelectorAll('img');
+                    images.forEach(img => {
+                        const oldSrc = img.getAttribute('src');
+                        if (oldSrc && !oldSrc.startsWith('http')) {
+                            img.src = '../../' + oldSrc;
+                        }
+                    });
+
                     gridContainer.appendChild(project);
-                });
-            })
-            .catch(err => {
-                console.error('Failed to load projects:', err);
-                document.getElementById('dynamic-project-grid').innerHTML = '<p>Check back soon for more projects!</p>';
+                }
             });
-    </script>
+        })
+        .catch(err => {
+            console.error('Failed to load projects:', err);
+            document.getElementById('dynamic-project-grid').innerHTML = '<p>Check back soon for more projects!</p>';
+        });
+</script>
 </body>
 </html>
