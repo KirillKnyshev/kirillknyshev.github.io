@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cyclistic User Analysis & Strategy | Kirill Knyshev</title>
+    <title>Quantium Data Analytics | Kirill Knyshev</title>
     <link rel="stylesheet" href="../../style.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
 </head>
@@ -15,34 +15,35 @@
     </nav>
 
     <section id="project-header" style="padding-top: 2rem; padding-bottom: 0; align-items: center; text-align: center;">
-        <p class="section__label" style="margin-bottom: 0.2rem;">Case Study</p>
-        <h1 class="title" style="margin-bottom: 0.8rem; font-size: 3rem;">Cyclistic User Analysis & Strategy</h1>
+        <p class="section__label" style="margin-bottom: 0.2rem;">Virtual Job Simulator</p>
+        <h1 class="title" style="margin-bottom: 0.8rem; font-size: 3rem;">Quantium Data Analytics</h1>
         
         <div class="btn-container" style="margin-top: 0; margin-bottom: 1.5rem; display: flex; justify-content: center; gap: 1rem;">
             <button class="btn" onclick="window.open('https://github.com/KirillKnyshev/kirillknyshev.github.io', '_blank')">View GitHub</button>
-            <button class="btn" onclick="window.open('https://public.tableau.com/app/profile/kirill.knyshev/viz/CyclisticCaseStudy-InProgress/CyclisticSummary#1', '_blank')">Live Dashboard</button>
+            <button class="btn" onclick="window.open('https://public.tableau.com/views/QuantiumDataAnalyticsCustomerSegmentsBrandPerformance/Dashboard1?:language=en-US&:sid=&:redirect=auth&:display_count=n&:origin=viz_share_link', '_blank')">Live Dashboard 1</button>
+            <button class="btn" onclick="window.open('https://public.tableau.com/views/QuantiumDataAnalyticsRetailStrategyTrialEvaluation/Dashboard1?:language=en-US&:sid=&:redirect=auth&:display_count=n&:origin=viz_share_link', '_blank')">Live Dashboard 2</button>
         </div>
 
         <div class="section__pic-container" style="width: 80%; max-width: 800px; margin: 0 auto;">
-            <img src="google_imagies/cyclist_dashboard.PNG" alt="Global Sales Analysis Dashboard" class="about-pic" style="width: 100%; height: auto; border-radius: 2rem; display: block;" />
+            <img src="quantium_imagies/Quantium Dashboard.PNG" alt="Global Sales Analysis Dashboard" class="about-pic" style="width: 100%; height: auto; border-radius: 2rem; display: block;" />
             <p style="font-size: 0.8rem; color: #777;">Figure 1: Full dashboard view.</p>
         </div>
     </section>
 
     <div style="max-width: 1000px; margin: 0 auto; padding: 2rem 5%;">
         <h2 style="margin-top: 0;">Project Overview</h2>
-        <p>As a junior analyst at Cyclistic, I was asked to tackle a challenge that’s central to our growth: how do we turn weekend explorers into daily commuters? By analyzing over 5.7 million trips, 
-            I looked for the tipping point, the specific behaviors that distinguish our casual riders from our loyal annual members. My goal was to hand the marketing team a roadmap for high-impact conversion strategies.</p>
+        <p>As part of the Quantium Data Analytics simulation, I analyzed retail transaction data for a major supermarket (Woolworths) to uncover the drivers of "Chips" category sales. By examining over 260,000 transactions, 
+            I identified the most profitable customer segments and evaluated the success of a new store layout trial. My goal was to provide data-backed recommendations for shelf optimization and targeted marketing.</p>
         
         <h2 style="margin-top: 2rem;">Tools & Technology</h2>
-        <p><strong>SQL (BigQuery):</strong> Processed and cleaned over 5.7 million rows of historical trip data, including data merging (UNION) and handling missing April datasets. <br>
-           <strong>Tableau:</strong> Designed an interactive executive dashboard featuring ride heatmaps, hourly usage trends, and seasonal analysis. <br>
-           <strong>Spreadsheets:</strong> Performed initial data validation and documented cleaning steps for stakeholder transparency.</p>
+        <p><strong>SQL (BigQuery):</strong> Cleaned and joined transaction data with customer loyalty profiles to create a unified dataset. <br>
+           <strong>Tableau:</strong> Designed 2 interactive dashboards to visualize market share, segment growth, and A/B test results (Trial vs. Control stores). <br>
 
         <h2 style="margin-top: 2rem;">The Process</h2>
-        <p>To ensure the data was clean, consistent, and ready for analysis, I followed these steps:</p>
+        <p>To ensure the analysis focused on typical consumer behavior, I followed a rigorous data preparation workflow:</p>
         <ul style="text-align: left; margin-left: 1.5rem;">
-            <li><strong>Data Consolidation & Auditing:</strong> I streamlined the ingestion process by batch-loading 12 monthly CSVs from Google Cloud Storage into BigQuery. Upon auditing the record counts, I identified that the April 2025 dataset failed to load correctly.</li>
+            <li><strong>Outlier Removal:</strong> Identified and removed commercial-scale transactions (e.g., single loyalty cards purchasing hundreds of packs) that would have skewed the average spend per customer.</li>
+            <li><strong>Segment Merging:</strong> Joined the transaction data with the "Life Stage" and "Premium Status" tables to understand who was buying what.</li>
 
         <div style="background-color: #f8f9fa; border-left: 5px solid #007bff; padding: 1.5rem; margin: 2rem 0; border-radius: 5px;">
         <h4 style="margin-top: 0; color: #007bff;">🛠️ Technical Note: Resolving the "April Data Gap"</h4>
