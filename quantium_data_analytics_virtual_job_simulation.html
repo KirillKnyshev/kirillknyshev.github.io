@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cyclistic User Analysis & Strategy | Kirill Knyshev</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav id="desktop-nav" style="justify-content: flex-start; padding-left: 5%;">
+        <ul class="nav-links">
+            <li><a href="index.html">← Back to Home</a></li>
+        </ul>
+    </nav>
+
+    <section id="project-header" style="padding-top: 2rem; padding-bottom: 0; align-items: center; text-align: center;">
+        <p class="section__label" style="margin-bottom: 0.2rem;">Case Study</p>
+        <h1 class="title" style="margin-bottom: 0.8rem; font-size: 3rem;">Cyclistic User Analysis & Strategy</h1>
+        
+        <div class="btn-container" style="margin-top: 0; margin-bottom: 1.5rem; display: flex; justify-content: center; gap: 1rem;">
+            <button class="btn" onclick="window.open('https://github.com/KirillKnyshev/kirillknyshev.github.io', '_blank')">View GitHub</button>
+            <button class="btn" onclick="window.open('https://public.tableau.com/app/profile/kirill.knyshev/viz/CyclisticCaseStudy-InProgress/CyclisticSummary#1', '_blank')">Live Dashboard</button>
+        </div>
+
+        <div class="section__pic-container" style="width: 80%; max-width: 800px; margin: 0 auto;">
+            <img src="images/google_cycle_project/cyclist_dashboard.PNG" alt="Global Sales Analysis Dashboard" class="about-pic" style="width: 100%; height: auto; border-radius: 2rem; display: block;" />
+            <p style="font-size: 0.8rem; color: #777;">Figure 1: Full dashboard view.</p>
+        </div>
+    </section>
+
+    <div style="max-width: 1000px; margin: 0 auto; padding: 2rem 5%;">
+        <h2 style="margin-top: 0;">Project Overview</h2>
+        <p>As a junior analyst at Cyclistic, I was asked to tackle a challenge that’s central to our growth: how do we turn weekend explorers into daily commuters? By analyzing over 5.7 million trips, 
+            I looked for the tipping point, the specific behaviors that distinguish our casual riders from our loyal annual members. My goal was to hand the marketing team a roadmap for high-impact conversion strategies.</p>
+        
+        <h2 style="margin-top: 2rem;">Tools & Technology</h2>
+        <p><strong>SQL (BigQuery):</strong> Processed and cleaned over 5.7 million rows of historical trip data, including data merging (UNION) and handling missing April datasets. <br>
+           <strong>Tableau:</strong> Designed an interactive executive dashboard featuring ride heatmaps, hourly usage trends, and seasonal analysis. <br>
+           <strong>Spreadsheets:</strong> Performed initial data validation and documented cleaning steps for stakeholder transparency.</p>
+
+        <h2 style="margin-top: 2rem;">The Process</h2>
+        <p>To ensure the data was clean, consistent, and ready for analysis, I followed these steps:</p>
+        <ul style="text-align: left; margin-left: 1.5rem;">
+            <li><strong>Data Consolidation & Auditing:</strong> I streamlined the ingestion process by batch-loading 12 monthly CSVs from Google Cloud Storage into BigQuery. Upon auditing the record counts, I identified that the April 2025 dataset failed to load correctly.</li>
+
+        <div style="background-color: #f8f9fa; border-left: 5px solid #007bff; padding: 1.5rem; margin: 2rem 0; border-radius: 5px;">
+        <h4 style="margin-top: 0; color: #007bff;">🛠️ Technical Note: Resolving the "April Data Gap"</h4>
+        <p style="font-size: 0.95rem; line-height: 1.6;">
+        While auditing the initial ingestion of 5.7M rows, I noticed the total volume looked lower than expected. To hunt down the leak, I ran a <code>COUNT(*)</code> grouped by month, and there it was, the <strong>April 2025</strong> dataset (<code>202504-divvy-tripdata</code>) had completely failed to append during the automated load.</p>
+        <p style="font-size: 0.95rem; line-height: 1.6; margin-bottom: 0;">
+        <strong>The Solution:</strong> Instead of re-running the entire automation, I performed a manual schema-matched upload specifically for the April records. To be safe, I followed this up with a SQL validation script to cross-reference the counts and ensure I hadn't introduced any duplicates. 
+            This extra step was vital; without that April data, my seasonal trend analysis would have shown a "fake" dip in spring ridership, leading to totally inaccurate business advice.</p>
+        </div>
+            
+        <pre style="background: #282c34; color: #abb2bf; padding: 1.0rem; border-radius: 8px; overflow-x: auto; margin: 1rem 0 1rem -1.5rem; font-family: 'Courier New', Courier, monospace; font-size: 0.85rem; border: 1px solid #3e4451; width: calc(100% + 1.5rem);">
+        <code>
+        -- Union the missing April 2025 data with the main table
+        INSERT INTO `case-studies-478607.case_study_ggle.all_trips`
+        SELECT * FROM `case-studies-478607.case_study_ggle.202504_divvy_tripdata`;
+                    
+        -- Verifying total record count (Result: 5.55M rows)
+        SELECT COUNT(*) FROM `case-studies-478607.case_study_ggle.all_trips`;
+        </code>
+        </pre>
+            
+            <li><strong>Data Quality Audit:</strong> After encountering significant performance lag in Excel due to the 5.5M+ row count, I migrated the audit process to BigQuery. I wrote a comprehensive validation script to identify missing values (NULLs) and anomalies across all key fields.</li>
+
+        <pre style="background: #282c34; color: #abb2bf; padding: 1.0rem; border-radius: 8px; overflow-x: auto; margin: 1rem 0 1rem -1.5rem; font-family: 'Courier New', Courier, monospace; font-size: 0.85rem; border: 1px solid #3e4451; width: calc(100% + 1.5rem);">
+        <code>
+        -- checking for NULLs and short trips
+        SELECT 
+        COUNT(*) AS total_rows,
+        COUNTIF(ride_id IS NULL) AS missing_ids,
+        COUNTIF(started_at IS NULL OR ended_at IS NULL) AS missing_timestamps,
+        COUNTIF(start_station_name IS NULL) AS null_start_stations,
+        COUNTIF(end_station_name IS NULL) AS null_end_stations,
+            
+        -- Identifying False Starts (trips under 60 seconds)
+        COUNTIF(TIMESTAMP_DIFF(ended_at, started_at, SECOND) <= 60) AS short_trips_under_60s
+        FROM `case-studies-478607.case_study_ggle.all_trips`;
+        </code>
+        </pre>
+
+        <div style="text-align: center; margin: 1.5rem 0 2rem -1.5rem; width: calc(100% + 1.5rem);">
+        <img src="images/google_cycle_project/Data Quality Audit.PNG" alt="BigQuery Query Results" style="width: 100%; max-width: 800px; border: 1px solid #ddd; border-radius: 8px; display: block; margin: 0 auto;">
+        <p style="font-size: 0.8rem; color: #777; margin-top: 0.5rem;">Figure 2:Results identifying NULLs.</p>
+        </div>
+
+        <div style="background-color: #fff4e5; border-left: 5px solid #ffa000; padding: 1rem; margin: 1rem 0 2rem -1.5rem; width: calc(100% + 1.5rem); border-radius: 4px;">
+        <p style="font-size: 0.9rem; margin: 0; color: #663c00;">
+        <strong>💡 Analytic Justification:</strong> 
+        While the audit identified over 1.2M records with missing <code>end_station_name</code>, I made the strategic decision to <strong>preserve this data</strong>. 
+        Because these records still contained accurate timestamps and GPS coordinates, they remain vital for calculating total trip volumes and average durations. Deleting 20% of the dataset would have resulted in a significant underestimation of total system usage.</p>
+        </div>
+            
+            <li><strong>Advanced Transformation & Imputation:</strong> To preserve data volume, I chose not to delete rows with missing station names. Instead, I used <code>IFNULL</code> to categorize them, while simultaneously calculating trip durations and extracting calendar data.</li>
+
+        <pre style="background: #282c34; color: #abb2bf; padding: 1.0rem; border-radius: 8px; overflow-x: auto; margin: 1rem 0 1rem -1.5rem; font-family: 'Courier New', Courier, monospace; font-size: 0.85rem; border: 1px solid #3e4451; width: calc(100% + 1.5rem);">
+        <code>
+        -- Building the final cleaned table: all_trips_v2
+        CREATE TABLE `case-studies-478607.case_study_ggle.all_trips_v2` AS
+        SELECT 
+            ride_id, rideable_type, member_casual,
+            
+        -- Missing Station Names 
+        IFNULL(start_station_name, 'On-Street / Virtual Dock') AS start_station_name,
+        IFNULL(end_station_name, 'On-Street / Virtual Dock') AS end_station_name,
+        start_lat, start_lng, end_lat, end_lng, started_at, ended_at,
+                        
+        -- Calculate Ride Length in Minutes
+        ROUND(TIMESTAMP_DIFF(ended_at, started_at, SECOND) / 60, 2) AS ride_length_minutes,
+                        
+        -- Day of the Week
+        FORMAT_TIMESTAMP('%A', started_at) AS day_of_week,
+                    
+        -- Create a Trip Type Category
+        CASE 
+            WHEN TIMESTAMP_DIFF(ended_at, started_at, SECOND) <= 60 THEN 'False Start'
+            ELSE 'Real Ride'
+        END AS trip_type
+        FROM `case-studies-478607.case_study_ggle.all_trips`
+        WHERE TIMESTAMP_DIFF(ended_at, started_at, SECOND) >= 0;
+        </code>
+        </pre>
+            
+            <li><strong>Defining "False Starts":</strong> I implemented a 60-second threshold to identify non-journey data. 
+                <p style="font-size: 0.9rem; font-style: italic; color: #555; margin-top: 0.5rem;">
+                    <strong>Logic:</strong> Trips under 1 minute often represent maintenance checks or users encountering docking issues. I chose to label these as "False Starts" rather than deleting them immediately, allowing for a cleaner analysis of "Real Rides" while maintaining a full audit trail.</p></li>
+            <li><strong>Data Aggregation & Optimization:</strong> To stay within Tableau's 1GB limit and ensure dashboard responsiveness, I aggregated the 5.5M+ rows into a summary table. I filtered for "Real Rides," extracted temporal features (Month, Season, Hour), and pre-calculated metrics.</li>
+            
+        <pre style="background: #282c34; color: #abb2bf; padding: 1.0rem; border-radius: 8px; overflow-x: auto; margin: 1rem 0 1rem -1.5rem; font-family: 'Courier New', Courier, monospace; font-size: 0.85rem; border: 1px solid #3e4451; width: calc(100% + 1.5rem);">
+        <code>
+        -- Build the final table for Tableau
+            SELECT 
+            member_casual, 
+            rideable_type, 
+            day_of_week, 
+            FORMAT_TIMESTAMP('%B', started_at) AS month_name,
+            
+        -- Seasons
+        CASE 
+            WHEN FORMAT_TIMESTAMP('%B', started_at) IN ('December', 'January', 'February') 
+                THEN 'Winter'
+            WHEN FORMAT_TIMESTAMP('%B', started_at) IN ('March', 'April', 'May') 
+                THEN 'Spring'
+            WHEN FORMAT_TIMESTAMP('%B', started_at) IN ('June', 'July', 'August') 
+                THEN 'Summer'
+            ELSE 'Fall' 
+        END AS season,
+            
+        -- Peak Hours
+        EXTRACT(HOUR FROM started_at) AS start_hour,
+        start_station_name, start_lat, start_lng,
+            
+        -- Aggregates     
+        COUNT(*) AS total_trips,
+        ROUND(AVG(ride_length_minutes), 2) AS avg_duration_mins
+        FROM `case-studies-478607.case_study_ggle.all_trips_v2`
+        WHERE trip_type = 'Real Ride'
+        GROUP BY 1, 2, 3, 4, 5, 6, 7, 8, 9;
+        </code>
+        </pre>
+            
+            <li><strong>Storage Optimization & Error Tracking:</strong> To stay under Tableau’s 1GB limit, I separated "False Starts" into a distinct summary table. This allowed me to analyze system friction (failed unlocks) without bloating the primary analysis dataset.</li>
+            
+        <pre style="background: #282c34; color: #abb2bf; padding: 1.0rem; border-radius: 8px; overflow-x: auto; margin: 1rem 0 1rem -1.5rem; font-family: 'Courier New', Courier, monospace; font-size: 0.85rem; border: 1px solid #3e4451; width: calc(100% + 1.5rem);">
+        <code>
+        -- False Starts
+        SELECT   
+            member_casual, 
+            rideable_type, 
+            day_of_week, 
+        COUNT(*) AS total_false_starts
+         FROM `case-studies-478607.case_study_ggle.all_trips_v2`
+        WHERE trip_type = 'False Start'
+        GROUP BY 1, 2, 3;
+        </code>
+        </pre>
+
+        <div style="text-align: center; margin: 1.5rem 0 2rem -1.5rem; width: calc(100% + 1.5rem);">
+        <img src="images/google_cycle_project/short_trip_under_60s.PNG" alt="BigQuery Query Results" style="width: 100%; max-width: 200px; border: 1px solid #ddd; border-radius: 8px; display: block; margin: 0 auto;">
+        <p style="font-size: 0.8rem; color: #777; margin-top: 0.5rem;">Figure 3: Audit results identifying 148,529 trips under 60 seconds.</p>
+        </div>
+           
+        <h2 style="margin-top: 2rem;">Key Insights & Results</h2>
+        <div style="display: flex; flex-direction: column; gap: 2rem; margin-top: 2rem;">
+        <div style="display: flex; flex-wrap: wrap; gap: 2rem; align-items: center;">
+            <img src="images/google_cycle_project/the_commute_gap_visual.PNG" alt="Hourly Usage Chart" style="flex: 1; min-width: 300px; max-width: 450px; border-radius: 8px; border: 1px solid #ddd;">
+            <div style="flex: 1; min-width: 300px;">
+                <strong>The Commute Gap:</strong>While casual riders peak on weekends for leisure, members show heavy "Utility Usage" during weekday rush hours. 
+                <p style="margin-top: 0.5rem; font-style: italic; font-size: 0.9rem; color: #555;">Impact: Marketing should pivot from 'lifestyle' ads to 'commuter efficiency' messaging for high-frequency casual users.</p>
+            </div>
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 2rem; align-items: center; flex-direction: row-reverse;">
+            <img src="images/google_cycle_project/the_tourist_vs_local_visual.PNG" alt="Heatmap Focus" style="flex: 1; min-width: 300px; max-width: 450px; border-radius: 8px; border: 1px solid #ddd;">
+            <div style="flex: 1; min-width: 300px;">
+                <strong>Geographic Filtering:</strong>Casual usage is concentrated at tourist landmarks, whereas members are spread across residential/commercial hubs. 
+                <p style="margin-top: 0.5rem; font-style: italic; font-size: 0.9rem; color: #555;">Impact: Conversion campaigns should be geo-fenced to residential 'commuter-belt' stations rather than tourist hotspots.</p>
+            </div>
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 2rem; align-items: center;">
+            <img src="images/google_cycle_project/the_seasonal_window_visual.PNG" alt="Seasonal Monthly Chart" style="flex: 1; min-width: 300px; max-width: 450px; border-radius: 8px; border: 1px solid #ddd;">
+            <div style="flex: 1; min-width: 300px;">
+                <strong>Seasonal Conversion Window:</strong>Casual ridership is highly weather-dependent, spiking in the spring. 
+                <p style="margin-top: 0.5rem; font-style: italic; font-size: 0.9rem; color: #555;">Impact: The 'Membership Drive' should be launched in April (coinciding with the April data surge identified in the audit) to capture riders as they form new habits.</p>
+            </div>
+        </div>
+        </div>      
+
+        <h2 style="margin-top: 2rem;">Final Recommendations</h2>
+        <p>Based on the analysis, here are the top three strategic recommendations to convert casual riders into annual members:</p>
+        <ul style="text-align: left; margin-left: 1.5rem;">
+            <li><strong>Digital Marketing at "Leisure Hotspots":</strong> Focus social media and email campaigns on the top-performing stations identified in the <a href="https://public.tableau.com/app/profile/kirill.knyshev/viz/CyclisticCaseStudy-InProgress/CyclisticSummary#1" target="_blank">Ride Heatmap</a>, specifically near the lakefront and tourist attractions where casual usage is highest.</li>
+            <li><strong>Weekend-to-Weekday Membership Trials:</strong> Since casual riders peak on weekends, offer a "Weekend Member" trial that provides discounted weekday rates, encouraging them to test the bikes for daily commuting—the primary behavior of annual members[cite: 2].</li>
+            <li><strong>Seasonal "Spring-Start" Promotions:</strong> Launch targeted conversion campaigns in late March and April to coincide with the identified seasonal surge in ridership, offering a "First Year Member" discount for new sign-ups during the spring transition[cite: 2].</li>
+
+        <h2 style="margin-top: 3rem;">Conclusion & Personal Growth</h2>
+        <p>This project was a deep dive into the realities of large-scale data analysis. Beyond mastering 
+        <strong>BigQuery SQL</strong> and <strong>Tableau</strong>, I learned the importance of <em>Data Auditing</em>—specifically how to identify and recover from ingestion errors like the missing April dataset.</p>
+        <p>By making strategic decisions to preserve "imperfect" data (handling 1.2M NULLs) rather than deleting it, I was able to provide a more accurate representation of Cyclistic’s total system usage. This case study reflects my ability to bridge the gap between technical data cleaning and actionable business strategy.</p>
+        </ul>
+    </div>
+    
+    <section id="more-projects" style="padding: 4rem 5%; border-top: 1px solid var(--border-color); background-color: #ffffff;">
+        <h2 class="title" style="font-size: 2rem; margin-bottom: 2rem; text-align: center;">Explore More Projects</h2>
+        
+        <div id="dynamic-project-grid" class="project-grid" style="display: flex; gap: 2rem; justify-content: center; flex-wrap: wrap;">
+            <p>Loading projects...</p>
+        </div>
+    </section>
+
+    <footer>
+        <p class="copyright-text" style="text-align: center; padding: 2rem 0;">Copyright &#169; 2026 Kirill Knyshev. All Rights Reserved.</p>
+    </footer>
+
+    <script>
+        // Fetch projects from index.html and filter out the current page
+        fetch('index.html')
+            .then(response => response.text())
+            .then(data => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(data, 'text/html');
+                
+                // Get all project cards from the home page
+                const allProjects = Array.from(doc.querySelectorAll('.project-card'));
+                
+                // Identify current file name (e.g., 'project1.html')
+                const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+
+                // Filter out the project card that links to this page
+                const filteredProjects = allProjects.filter(project => {
+                    const projectLink = project.getAttribute('onclick') || "";
+                    return !projectLink.includes(currentPage);
+                });
+
+                const gridContainer = document.getElementById('dynamic-project-grid');
+                gridContainer.innerHTML = ''; // Clear loading text
+                
+                filteredProjects.forEach(project => {
+                    gridContainer.appendChild(project);
+                });
+            })
+            .catch(err => {
+                console.error('Failed to load projects:', err);
+                document.getElementById('dynamic-project-grid').innerHTML = '<p>Check back soon for more projects!</p>';
+            });
+    </script>
+</body>
+</html>
