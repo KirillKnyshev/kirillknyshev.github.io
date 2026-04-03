@@ -7,7 +7,24 @@ SELECT
   countif(TOT_SALES IS NULL) AS null_sales
 FROM `case-studies-478607.quantium_analysis.clean_transactions_data`;
 
--- "TRIM" to remove start/end spaces, "REGEXP_REPLACE" handles middle double-spaces. Also, creating a new 'clean transaction data' table
+-- removing the 200. Also, creating a new 'clean transaction data' table
+CREATE OR REPLACE TABLE `case-studies-478607.quantium_analysis.clean_transactions_data` AS
+SELECT * FROM `case-studies-478607.quantium_analysis.clean_transactions_data`
+WHERE PROD_QTY < 100;
+
+-- "TRIM" to remove start/end spaces, "REGEXP_REPLACE" handles middle double-spaces.
 CREATE OR REPLACE TABLE `case-studies-478607.quantium_analysis.clean_transactions_data` AS
  SELECT *,TRIM(REGEXP_REPLACE(PROD_NAME, r'\s+', ' ')) AS NEW_PROD_NAME
  FROM `case-studies-478607.quantium_analysis.clean_transactions_data`;
+
+-- fix common shorthand and missing spaces. (one of many fixes that need to be made throughout 'Prod_Name'), using the "REPLACE" method
+CREATE OR REPLACE TABLE `case-studies-478607.quantium_analysis.clean_transactions_data` AS
+SELECT * EXCEPT(NEW_PROD_NAME),
+  REPLACE(
+    REPLACE(
+      REPLACE(
+        REPLACE(NEW_PROD_NAME, '&Chives', '& Chives'), 
+      'Sr/Cream', 'Sour Cream'),
+    'Chp', 'Chip'),
+  'Swt', 'Sweet') AS NEW_PROD_NAME
+FROM `case-studies-478607.quantium_analysis.clean_transactions_data`;
