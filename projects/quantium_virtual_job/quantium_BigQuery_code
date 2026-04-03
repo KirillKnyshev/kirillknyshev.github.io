@@ -7,17 +7,16 @@ SELECT
   countif(TOT_SALES IS NULL) AS null_sales
 FROM `case-studies-478607.quantium_analysis.qvi_transaction_data`;
 
--- Identifying commercial outliers (Customers buying 200+ packs), and creating a new clean transaction table 
-CREATE OR REPLACE TABLE `case-studies-478607.quantium_analysis.clean_transactions_data` AS
+-- Identifying commercial outliers (Customers buying 200+ packs)
 SELECT * 
-FROM `case-studies-478607.quantium_analysis.clean_transactions_data`
+FROM `case-studies-478607.quantium_analysis.qvi_transaction_data`;
 WHERE PROD_QTY >= 200;
 
--- Removing the outlier (Loyalty Card 226000) for clean analysis
+-- Removing the outlier (Loyalty Card 226000) for clean analysis, and creating a new clean transaction table 
 CREATE OR REPLACE TABLE `case-studies-478607.quantium_analysis.clean_transactions_data` AS
 SELECT * 
-FROM `case-studies-478607.quantium_analysis.clean_transactions_data`
-HERE LYLTY_CARD_NBR = 226000;
+FROM `case-studies-478607.quantium_analysis.qvi_transaction_data`;
+WHERE LYLTY_CARD_NBR != 226000;
 
 -- "TRIM" to remove start/end spaces, "REGEXP_REPLACE" handles middle double-spaces.
 CREATE OR REPLACE TABLE `case-studies-478607.quantium_analysis.clean_transactions_data` AS
