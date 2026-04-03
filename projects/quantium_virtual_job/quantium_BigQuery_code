@@ -1,0 +1,13 @@
+-- looking for nulls 
+SELECT 
+  countif(DATE IS NULL) AS null_dates,
+  countif(STORE_NBR IS NULL) AS null_stores,
+  countif(LYLTY_CARD_NBR IS NULL) AS null_customers,
+  countif(PROD_NAME IS NULL) AS null_products,
+  countif(TOT_SALES IS NULL) AS null_sales
+FROM `case-studies-478607.quantium_analysis.clean_transactions_data`;
+
+-- "TRIM" to remove start/end spaces, "REGEXP_REPLACE" handles middle double-spaces. Also, creating a new 'clean transaction data' table
+CREATE OR REPLACE TABLE `case-studies-478607.quantium_analysis.clean_transactions_data` AS
+ SELECT *,TRIM(REGEXP_REPLACE(PROD_NAME, r'\s+', ' ')) AS NEW_PROD_NAME
+ FROM `case-studies-478607.quantium_analysis.clean_transactions_data`;
