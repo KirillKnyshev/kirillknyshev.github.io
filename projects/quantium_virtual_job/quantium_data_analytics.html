@@ -36,7 +36,7 @@
             I identified the most profitable customer segments and evaluated the success of a new store layout trial. My goal was to provide data-backed recommendations for shelf optimization and targeted marketing.</p>
         
         <h2 style="margin-top: 2rem;">Tools & Technology</h2>
-        <p><strong>SQL (BigQuery):</strong> Cleaned and joined transaction data with customer loyalty profiles to create a unified dataset. <br>
+        <p><strong>SQL (BigQuery):</strong> Primary engine used for heavy-duty data cleaning, outlier removal, and feature engineering (Pack Size/Brand extraction). <br>
            <strong>Tableau:</strong> Designed 2 interactive dashboards to visualize market share, segment growth, and A/B test results (Trial vs. Control stores). <br>
 
         <h2 style="margin-top: 2rem;">The Process</h2>
@@ -46,13 +46,14 @@
             <li><strong>Segment Merging:</strong> Joined the transaction data with the "Life Stage" and "Premium Status" tables to understand who was buying what.</li>
 
         <div style="background-color: #f8f9fa; border-left: 5px solid #007bff; padding: 1.5rem; margin: 2rem 0; border-radius: 5px;">
-        <h4 style="margin-top: 0; color: #007bff;">🛠️ Technical Note: Solving the "Top N" Filter Conflict"</h4>
+        <h4 style="margin-top: 0; color: #007bff;">🛠️ Technical Note: SQL-First Architecture</h4>
         <p style="font-size: 0.95rem; line-height: 1.6;">
-        While building the Tableau dashboard, I encountered a common technical hurdle: clicking a brand filter would cause the "Top Products" chart to go blank.</p>
+            While this analysis is often performed in R or Python, I intentionally chose <strong>SQL (BigQuery)</strong> as my primary engine for this project.</p>
         <p style="font-size: 0.95rem; line-height: 1.6; margin-bottom: 0;">
-        <strong>The Problem:</strong> The "Top 10" filter was calculated before the Brand filter, resulting in an empty set if the selected brand wasn't in the global top 10.</p>
-        <strong>The Solution:</strong> I applied a <strong>Context Filter</strong> to the Brand field. By forcing the Brand filter into the "Context" layer, 
-            I ensured Tableau filtered for the brand first, and then calculated the Top 10 products within that specific brand—creating a truly dynamic user experience.</p>
+        <strong>The "Why":</strong> As an entry-level analyst, I wanted to master the most critical skill in the modern data stack. 
+            By performing 260,000+ row joins and outlier removals directly in the cloud, I ensured high performance and data consistency that local R/Python environments can't always match.</p>
+        <strong>The Outcome:</strong> By running the transformations in BigQuery first, I didn't have to worry about processing errors or slow performance in Tableau. It allowed me to export a clean, 
+            refined dataset that was already validated and ready for visualization.</p> 
         </div>
             
         <pre style="background: #282c34; color: #abb2bf; padding: 1.0rem; border-radius: 8px; overflow-x: auto; margin: 1rem 0 1rem -1.5rem; font-family: 'Courier New', Courier, monospace; font-size: 0.85rem; border: 1px solid #3e4451; width: calc(100% + 1.5rem);">
