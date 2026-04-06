@@ -71,7 +71,7 @@
         </code>
         </pre>
             
-            <li><strong>Data Cleaning & Outlier Removal:</strong>Removing the outliers was critical. Including them would have inflated product quality.</li>
+            <li><strong>Data Cleaning & Outlier Removal:</strong> Removing the outliers was critical. Including them would have inflated product quality.</li>
 
         <pre style="background: #282c34; color: #abb2bf; padding: 1.0rem; border-radius: 8px; overflow-x: auto; margin: 1rem 0 1rem -1.5rem; font-family: 'Courier New', Courier, monospace; font-size: 0.85rem; border: 1px solid #3e4451; width: calc(100% + 1.5rem);">
         <code>
@@ -86,7 +86,7 @@
         </code>
         </pre>
             
-            <li><strong>Inner Join:</strong>Joining two tables.</li>
+            <li><strong>Inner Join:</strong> Joining two tables.</li>
 
         <pre style="background: #282c34; color: #abb2bf; padding: 1.0rem; border-radius: 8px; overflow-x: auto; margin: 1rem 0 1rem -1.5rem; font-family: 'Courier New', Courier, monospace; font-size: 0.85rem; border: 1px solid #3e4451; width: calc(100% + 1.5rem);">
         <code>
@@ -114,7 +114,7 @@
         </code>
         </pre>
             
-            <li><strong>Brand Standardization and Pack Size:</strong>I pulled the brand names out of the product descriptions using the first word of the string. Since some brands were cut off or used multiple words, 
+            <li><strong>Brand Standardization and Pack Size:</strong> I pulled the brand names out of the product descriptions using the first word of the string. Since some brands were cut off or used multiple words, 
                 I used a CASE statement to clean those up and make sure every brand was labeled correctly. The same concept for pack sizes, but the first numbers of string</li> 
                
         <pre style="background: #282c34; color: #abb2bf; padding: 1.0rem; border-radius: 8px; overflow-x: auto; margin: 1rem 0 1rem -1.5rem; font-family: 'Courier New', Courier, monospace; font-size: 0.85rem; border: 1px solid #3e4451; width: calc(100% + 1.5rem);">
@@ -178,7 +178,98 @@
         <p style="font-size: 0.8rem; color: #777; margin-top: 0.5rem;">Figure 4: Results of Pack Size by customers and lifestage.</p>
         </div>   
 
-            <li><strong>Pack Size:</strong> What is each customers most bought pack size.</li>
+            <li><strong>Pack Size:</strong> What is each customers most bought pack size. 175g was the most common pack size for all customers.</li>
+            
+        <pre style="background: #282c34; color: #abb2bf; padding: 1.0rem; border-radius: 8px; overflow-x: auto; margin: 1rem 0 1rem -1.5rem; font-family: 'Courier New', Courier, monospace; font-size: 0.85rem; border: 1px solid #3e4451; width: calc(100% + 1.5rem);">
+        <code>
+        -- Isolating store 77 to find the best-matching stores
+        WITH trial_store_77 AS (
+        SELECT month_id, total_sales, total_customers
+        FROM `case-studies-478607.quantium_analysis.monthly_store_metrics`
+        WHERE STORE_NBR = 77 AND month_id < '201902'
+        ),
+        all_other_stores AS (
+        SELECT STORE_NBR, month_id, total_sales, total_customers
+        FROM `case-studies-478607.quantium_analysis.monthly_store_metrics`
+        WHERE STORE_NBR != 77 AND month_id < '201902'
+        )
+        SELECT 
+            others.STORE_NBR,
+            ROUND(CORR(others.total_sales, trial.total_sales), 4) AS corr_sales,
+            ROUND(CORR(others.total_customers, trial.total_customers), 4) AS corr_customers
+        FROM all_other_stores AS others
+        JOIN trial_store_77 AS trial ON others.month_id = trial.month_id
+        GROUP BY 1
+        HAVING corr_sales IS NOT NULL
+        ORDER BY corr_sales DESC
+        LIMIT 5;
+
+        -- Testing your top candidates that we found with the top code
+        WITH metrics AS (
+        SELECT 
+            STORE_NBR,
+            AVG(total_sales) AS avg_sales,
+            AVG(total_customers) AS avg_cust
+        FROM `case-studies-478607.quantium_analysis.monthly_store_metrics`
+        WHERE month_id < '201902'
+        GROUP BY 1
+        ),
+        abs_diff AS (
+        SELECT 
+            STORE_NBR,
+            ABS(metrics.avg_sales - (SELECT avg_sales FROM metrics WHERE STORE_NBR = 77)) AS sales_diff,
+            ABS(metrics.avg_cust - (SELECT avg_cust FROM metrics WHERE STORE_NBR = 77)) AS cust_diff
+        FROM metrics
+        )
+        SELECT 
+        STORE_NBR,
+        -- Scaling the distance: 1 is closest, 0 is furthest
+        1 - (sales_diff - MIN(sales_diff) OVER()) / (MAX(sales_diff) OVER() - MIN(sales_diff) OVER()) AS mag_sales,
+        1 - (cust_diff - MIN(cust_diff) OVER()) / (MAX(cust_diff) OVER() - MIN(cust_diff) OVER()) AS mag_cust
+        FROM abs_diff
+        WHERE STORE_NBR IN (233, 41, 50) -- Testing your top candidates
+        ORDER BY mag_sales DESC;
+
+        -- Calculate the ratio between the two stores BEFORE the trial
+        WITH scaling_factor AS (
+        SELECT 
+            SUM(CASE WHEN STORE_NBR = 77 THEN total_sales END) / 
+            SUM(CASE WHEN STORE_NBR = 233 THEN total_sales END) AS sales_ratio
+        FROM `case-studies-478607.quantium_analysis.monthly_store_metrics`
+        WHERE month_id < '201902'
+        )
+        SELECT 
+            month_id,
+            -- Actual Sales for Trial Store
+            MAX(CASE WHEN STORE_NBR = 77 THEN total_sales END) AS trial_sales,
+            -- Scaled Sales for Control Store (what we EXPECTED to happen)
+            ROUND(MAX(CASE WHEN STORE_NBR = 233 THEN total_sales END) * (SELECT sales_ratio FROM scaling_factor), 2) AS scaled_control_sales,
+            -- The Percentage Uplift
+            ROUND(((MAX(CASE WHEN STORE_NBR = 77 THEN total_sales END) / (MAX(CASE WHEN STORE_NBR = 233 THEN total_sales END) * (SELECT sales_ratio FROM scaling_factor))) - 1) * 100, 2) AS percentage_uplift
+        FROM `case-studies-478607.quantium_analysis.monthly_store_metrics`
+        WHERE month_id BETWEEN '201902' AND '201904'
+        GROUP BY 1
+        ORDER BY 1;
+        
+        -- Repeating the same codes above, but with stores 86 and 88. Finding store 155 matches closer to 86 and store 91 with 88. 
+        </code>
+        </pre>
+            
+        <div style="text-align: center; margin: 1.5rem 0 2rem -1.5rem; width: calc(100% + 1.5rem);">
+        <img src="quantium_imagies/quantium_pack_size.PNG" alt="BigQuery Query Results" style="width: 100%; max-width: 800px; border: 1px solid #ddd; border-radius: 8px; display: block; margin: 0 auto;">
+        <p style="font-size: 0.8rem; color: #777; margin-top: 0.5rem;">Figure 4: Results of Pack Size by customers and lifestage.</p>
+        </div>   
+
+            <li><strong>The "Control" Store (Correlation):</strong> Compares Store 77 to every other store in the database using data from before the trial started (pre-February 2019).</li>
+            <li><strong>Validating the Match:</strong> calculates the absolute difference in average sales and customers, then "scales" that difference between 0 and 1. 
+                A score of 1 means the stores are identical in size. This confirmed that Store 233 was the best physical match for Store 77.</li>
+            <li><strong>Calculating the "Uplift" (The Result):</strong> Creating a dynamic scaling factor to adjust the control store's performance. This allowed for an "apples-to-apples" comparison during the trial months,
+                revealing the true percentage increase in revenue directly attributable to the new category layout.</li>
+
+            <li><strong>| Trial Store</strong><strong> | Control Store</strong><strong> | Matching Criteria |</strong></li>
+            <li><strong>| Store 77</strong> | Store 233 | Total Sales & Customer Volume |</li>
+            <li><strong>| Store 86</strong> | Store 155 | Customer Loyalty Density |</li>
+            <li><strong>| Store 88</strong> | Store 237 | Transaction Frequency |</li>
 
         <h2 style="margin-top: 2rem;">Key Insights & Results</h2>
         <div style="display: flex; flex-direction: column; gap: 2rem; margin-top: 2rem;">
