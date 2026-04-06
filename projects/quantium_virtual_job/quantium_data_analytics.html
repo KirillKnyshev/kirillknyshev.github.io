@@ -182,7 +182,8 @@
             
         <pre style="background: #282c34; color: #abb2bf; padding: 1.0rem; border-radius: 8px; overflow-x: auto; margin: 1rem 0 1rem -1.5rem; font-family: 'Courier New', Courier, monospace; font-size: 0.85rem; border: 1px solid #3e4451; width: calc(100% + 1.5rem);">
         <code>
-        -- Isolating store 77 to find the best-matching stores
+        -- 1. Finding the "Control" Store (Correlation)
+            
         WITH trial_store_77 AS (
         SELECT month_id, total_sales, total_customers
         FROM `case-studies-478607.quantium_analysis.monthly_store_metrics`
@@ -204,7 +205,7 @@
         ORDER BY corr_sales DESC
         LIMIT 5;
 
-        -- Testing your top candidates that we found with the top code
+        -- 2. Validating the Match (Magnitude)
         WITH metrics AS (
         SELECT 
             STORE_NBR,
@@ -230,7 +231,7 @@
         WHERE STORE_NBR IN (233, 41, 50) -- Testing your top candidates
         ORDER BY mag_sales DESC;
 
-        -- Calculate the ratio between the two stores BEFORE the trial
+        -- 3. Calculating the "Uplift" (The Result)
         WITH scaling_factor AS (
         SELECT 
             SUM(CASE WHEN STORE_NBR = 77 THEN total_sales END) / 
@@ -250,40 +251,37 @@
         WHERE month_id BETWEEN '201902' AND '201904'
         GROUP BY 1
         ORDER BY 1;
-        
-        -- Repeating the same codes above, but with stores 86 and 88. Finding store 155 matches closer to 86 and store 91 with 88. 
         </code>
         </pre>
 
-            <li><strong>The "Control" Store (Correlation):</strong> Compares Store 77 to every other store in the database using data from before the trial started (pre-February 2019).</li>
-            <li><strong>Validating the Match:</strong> calculates the absolute difference in average sales and customers, then "scales" that difference between 0 and 1. 
+            <li><strong>Pearson Correlation:</strong> Compares Store 77 to every other store in the database using data from before the trial started (pre-February 2019).</li>
+            <li><strong>Magnitude Scaling:</strong> calculates the absolute difference in average sales and customers, then "scales" that difference between 0 and 1. 
                 A score of 1 means the stores are identical in size. This confirmed that Store 233 was the best physical match for Store 77.</li>
-            <li><strong>Calculating the "Uplift" (The Result):</strong> Creating a dynamic scaling factor to adjust the control store's performance. This allowed for an "apples-to-apples" comparison during the trial months,
+            <li><strong>Uplift Calculation:</strong> Creating a dynamic scaling factor to adjust the control store's performance. This allowed for an "apples-to-apples" comparison during the trial months,
                 revealing the true percentage increase in revenue directly attributable to the new category layout.</li>
 
-            <li><strong>| Trial Store</strong><strong> | Control Store</strong><strong> | Matching Criteria |</strong></li>
-            <li><strong>| Store 77</strong> | Store 233 | Total Sales & Customer Volume |</li>
-            <li><strong>| Store 86</strong> | Store 155 | Customer Loyalty Density |</li>
-            <li><strong>| Store 88</strong> | Store 237 | Transaction Frequency |</li>
+            <li><strong>Trail Store 77:</strong> Control Store 233; Matching Criteria-Total Sales & Customer Volume |</li>
+            <li><strong>Trail Store 86:</strong> Control Store 155; Matching Criteria-Customer Loyalty Density |</li>
+            <li><strong>Trail Store 88:</strong> Control Store 237; Matching Criteria-Transaction Frequency |</li>
 
         <h2 style="margin-top: 2rem;">Key Insights & Results</h2>
         <div style="display: flex; flex-direction: column; gap: 2rem; margin-top: 2rem;">
         <div style="display: flex; flex-wrap: wrap; gap: 2rem; align-items: center;">
-            <img src="google_imagies/the_commute_gap_visual.PNG" alt="Hourly Usage Chart" style="flex: 1; min-width: 300px; max-width: 450px; border-radius: 8px; border: 1px solid #ddd;">
+            <img src="quantium_imagies/quantium_powerhouse_segment.PNG" alt="Hourly Usage Chart" style="flex: 1; min-width: 300px; max-width: 450px; border-radius: 8px; border: 1px solid #ddd;">
             <div style="flex: 1; min-width: 300px;">
                 <strong>The Powerhouse Segment:</strong> "Mainstream Young Singles/Couples" and "Mainstream Retirees" contribute the highest total sales volume. 
                 <p style="margin-top: 0.5rem; font-style: italic; font-size: 0.9rem; color: #555;">Impact: Inventory management should prioritize "Premium" shelf real estate for Kettle and Doritos to capture higher-margin sales from less price-sensitive shoppers.</p>
             </div>
         </div>
         <div style="display: flex; flex-wrap: wrap; gap: 2rem; align-items: center; flex-direction: row-reverse;">
-            <img src="google_imagies/the_tourist_vs_local_visual.PNG" alt="Heatmap Focus" style="flex: 1; min-width: 300px; max-width: 450px; border-radius: 8px; border: 1px solid #ddd;">
+            <img src="quantium_imagies/quantium_brand_loyalty.PNG" alt="Heatmap Focus" style="flex: 1; min-width: 300px; max-width: 450px; border-radius: 8px; border: 1px solid #ddd;">
             <div style="flex: 1; min-width: 300px;">
                 <strong>Brand Loyalty:</strong> </strong>Smiths</strong> remains the dominant brand, but </strong>Doritos</strong> and </strong>Kettle</strong> show higher-than-average spend per transaction among premium customers. 
                 <p style="margin-top: 0.5rem; font-style: italic; font-size: 0.9rem; color: #555;">Impact: The category reset proved that logical product grouping (pairing popular brands with high-traffic flow) significantly increases unplanned purchases, justifying a national rollout.</p>
             </div>
         </div>
         <div style="display: flex; flex-wrap: wrap; gap: 2rem; align-items: center;">
-            <img src="google_imagies/the_seasonal_window_visual.PNG" alt="Seasonal Monthly Chart" style="flex: 1; min-width: 300px; max-width: 450px; border-radius: 8px; border: 1px solid #ddd;">
+            <img src="quantium_imagies/quantium_trial_win.PNG" alt="Seasonal Monthly Chart" style="flex: 1; min-width: 300px; max-width: 450px; border-radius: 8px; border: 1px solid #ddd;">
             <div style="flex: 1; min-width: 300px;">
                 <strong>The Trial Win:</strong> The store layout trial in Store 77 resulted in a massive </strong>+71.7% sales uplift</strong> compared to its control store during the peak month.
                 <p style="margin-top: 0.5rem; font-style: italic; font-size: 0.9rem; color: #555;">Impact: The 'Membership Drive' should be launched in April (coinciding with the April data surge identified in the audit) to capture riders as they form new habits.</p>
