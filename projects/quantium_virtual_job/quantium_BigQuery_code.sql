@@ -71,7 +71,7 @@ CREATE OR REPLACE TABLE `case-studies-478607.quantium_analysis.clean_transaction
 SELECT *, CAST(REGEXP_EXTRACT(PROD_NAME, r'(\d+)') AS INT64) AS PACK_SIZE
 FROM `case-studies-478607.quantium_analysis.clean_transactions_data`;
 
--- Answering Task one with SQL code in BigQuery
+-- Answering Task One with SQL code in BigQuery
 
   -- 1. TOTAL SALES BY SEGMENT (Who spends the most?)
   SELECT 
@@ -79,7 +79,7 @@ FROM `case-studies-478607.quantium_analysis.clean_transactions_data`;
     PREMIUM_CUSTOMER,
     ROUND(SUM(TOT_SALES), 2) AS TOTAL_SALES
   FROM `case-studies-478607.quantium_analysis.transaction_purchase_behavior_merged_data`
-  GROUP BY 1, 2
+  GROUP BY LIFESTAGE, PREMIUM_CUSTOMER
   ORDER BY TOTAL_SALES DESC;
 
   -- 2. CUSTOMER PROFILING (How many customers and how much do they buy?)
@@ -90,7 +90,7 @@ FROM `case-studies-478607.quantium_analysis.clean_transactions_data`;
     ROUND(SUM(PROD_QTY) / COUNT(DISTINCT LYLTY_CARD_NBR), 2) AS AVG_UNITS_PER_CUST,
     ROUND(SUM(TOT_SALES) / SUM(PROD_QTY), 2) AS AVG_PRICE_PER_UNIT
   FROM `case-studies-478607.quantium_analysis.transaction_purchase_behavior_merged_data`
-  GROUP BY 1, 2
+  GROUP BY LIFESTAGE, PREMIUM_CUSTOMER
   ORDER BY UNIQUE_CUSTOMERS DESC;
 
   -- 3. PACK SIZE ANALYSIS (What sizes do they prefer?)
@@ -100,21 +100,22 @@ FROM `case-studies-478607.quantium_analysis.clean_transactions_data`;
     ROUND(AVG(PACK_SIZE), 2) AS AVG_PACK_SIZE,
     APPROX_TOP_SUM(CAST(PACK_SIZE AS STRING), 1, 1)[OFFSET(0)].value AS MOST_COMMON_PACK
   FROM `case-studies-478607.quantium_analysis.transaction_purchase_behavior_merged_data`
-  GROUP BY 1, 2
+  GROUP BY LIFESTAGE, PREMIUM_CUSTOMER
   ORDER BY AVG_PACK_SIZE DESC;
 
 -- Answering Task Two with SQL code in BigQuery
   CREATE OR REPLACE TABLE `case-studies-478607.quantium_analysis.monthly_store_metrics` AS
   SELECT 
     STORE_NBR,
-    FORMAT_DATE('%Y%m', DATE) AS month_id,
+    month_id,
     ROUND(SUM(TOT_SALES), 2) AS total_sales,
     COUNT(DISTINCT LYLTY_CARD_NBR) AS total_customers,
     ROUND(SUM(PROD_QTY) / COUNT(DISTINCT LYLTY_CARD_NBR), 2) AS avg_chips_per_cust,
     ROUND(SUM(TOT_SALES) / NULLIF(SUM(PROD_QTY), 0), 2) AS avg_price_per_unit
   FROM `case-studies-478607.quantium_analysis.clean_transactions_data`
-  GROUP BY 1, 2;
+  GROUP BY STORE_NBR, month_id;
 
+-- Isolating store 77 to find the best-matching stores
 WITH trial_store_77 AS (
   SELECT month_id, total_sales, total_customers
   FROM `case-studies-478607.quantium_analysis.monthly_store_metrics`
@@ -127,9 +128,7 @@ all_other_stores AS (
 )
 SELECT 
   others.STORE_NBR,
-  -- 1. Correlation of Sales (Do the trends match?)
   ROUND(CORR(others.total_sales, trial.total_sales), 4) AS corr_sales,
-  -- 2. Correlation of Customers (Do the foot-traffic patterns match?)
   ROUND(CORR(others.total_customers, trial.total_customers), 4) AS corr_customers
 FROM all_other_stores AS others
 JOIN trial_store_77 AS trial ON others.month_id = trial.month_id
@@ -138,6 +137,7 @@ HAVING corr_sales IS NOT NULL
 ORDER BY corr_sales DESC
 LIMIT 5;
 
+-- Testing your top candidates that we found with the top code
 WITH metrics AS (
   SELECT 
     STORE_NBR,
@@ -163,8 +163,8 @@ FROM abs_diff
 WHERE STORE_NBR IN (233, 41, 50) -- Testing your top candidates
 ORDER BY mag_sales DESC;
 
+ -- Calculate the ratio between the two stores BEFORE the trial
 WITH scaling_factor AS (
-  -- We calculate the ratio between the two stores BEFORE the trial
   SELECT 
     SUM(CASE WHEN STORE_NBR = 77 THEN total_sales END) / 
     SUM(CASE WHEN STORE_NBR = 233 THEN total_sales END) AS sales_ratio
@@ -184,124 +184,5 @@ WHERE month_id BETWEEN '201902' AND '201904'
 GROUP BY 1
 ORDER BY 1;
 
-WITH trial_store_86 AS (
-  SELECT month_id, total_sales, total_customers
-  FROM `case-studies-478607.quantium_analysis.monthly_store_metrics`
-  WHERE STORE_NBR = 86 AND month_id < '201902'
-),
-all_other_stores AS (
-  SELECT STORE_NBR, month_id, total_sales, total_customers
-  FROM `case-studies-478607.quantium_analysis.monthly_store_metrics`
-  WHERE STORE_NBR NOT IN (77, 86, 88) AND month_id < '201902'
-)
-SELECT 
-  others.STORE_NBR,
-  ROUND(CORR(others.total_sales, trial.total_sales), 4) AS corr_sales,
-  ROUND(CORR(others.total_customers, trial.total_customers), 4) AS corr_customers
-FROM all_other_stores AS others
-JOIN trial_store_86 AS trial ON others.month_id = trial.month_id
-GROUP BY 1
-ORDER BY corr_sales DESC
-LIMIT 5;
+-- Repeating the same codes above, but with stores 86 and 88. Finding store 155 matches closer to 86 and store 91 with 88. 
 
-WITH metrics AS (
-  SELECT 
-    STORE_NBR,
-    AVG(total_sales) AS avg_sales,
-    AVG(total_customers) AS avg_cust
-  FROM `case-studies-478607.quantium_analysis.monthly_store_metrics`
-  WHERE month_id < '201902'
-  GROUP BY 1
-),
-abs_diff AS (
-  SELECT 
-    STORE_NBR,
-    ABS(metrics.avg_sales - (SELECT avg_sales FROM metrics WHERE STORE_NBR = 86)) AS sales_diff,
-    ABS(metrics.avg_cust - (SELECT avg_cust FROM metrics WHERE STORE_NBR = 86)) AS cust_diff
-  FROM metrics
-)
-SELECT 
-  STORE_NBR,
-  1 - (sales_diff - MIN(sales_diff) OVER()) / (MAX(sales_diff) OVER() - MIN(sales_diff) OVER()) AS mag_sales,
-  1 - (cust_diff - MIN(cust_diff) OVER()) / (MAX(cust_diff) OVER() - MIN(cust_diff) OVER()) AS mag_cust
-FROM abs_diff
-WHERE STORE_NBR IN (155, 132, 138)
-ORDER BY mag_sales DESC;
-
-WITH scaling_factor AS (
-  SELECT 
-    SUM(CASE WHEN STORE_NBR = 86 THEN total_sales END) / 
-    SUM(CASE WHEN STORE_NBR = 155 THEN total_sales END) AS sales_ratio
-  FROM `case-studies-478607.quantium_analysis.monthly_store_metrics`
-  WHERE month_id < '201902'
-)
-SELECT 
-  month_id,
-  MAX(CASE WHEN STORE_NBR = 86 THEN total_sales END) AS trial_sales,
-  ROUND(MAX(CASE WHEN STORE_NBR = 155 THEN total_sales END) * (SELECT sales_ratio FROM scaling_factor), 2) AS scaled_control_sales,
-  ROUND(((MAX(CASE WHEN STORE_NBR = 86 THEN total_sales END) / (MAX(CASE WHEN STORE_NBR = 155 THEN total_sales END) * (SELECT sales_ratio FROM scaling_factor))) - 1) * 100, 2) AS percentage_uplift
-FROM `case-studies-478607.quantium_analysis.monthly_store_metrics`
-WHERE month_id BETWEEN '201902' AND '201904'
-GROUP BY 1
-ORDER BY 1;
-
-WITH trial_store_88 AS (
-  SELECT month_id, total_sales, total_customers
-  FROM `case-studies-478607.quantium_analysis.monthly_store_metrics`
-  WHERE STORE_NBR = 88 AND month_id < '201902'
-),
-all_other_stores AS (
-  SELECT STORE_NBR, month_id, total_sales, total_customers
-  FROM `case-studies-478607.quantium_analysis.monthly_store_metrics`
-  WHERE STORE_NBR NOT IN (77, 86, 88) AND month_id < '201902'
-)
-SELECT 
-  others.STORE_NBR,
-  ROUND(CORR(others.total_sales, trial.total_sales), 4) AS corr_sales,
-  ROUND(CORR(others.total_customers, trial.total_customers), 4) AS corr_customers
-FROM all_other_stores AS others
-JOIN trial_store_88 AS trial ON others.month_id = trial.month_id
-GROUP BY 1
-ORDER BY corr_sales DESC
-LIMIT 5;
-
-WITH metrics AS (
-  SELECT 
-    STORE_NBR,
-    AVG(total_sales) AS avg_sales,
-    AVG(total_customers) AS avg_cust
-  FROM `case-studies-478607.quantium_analysis.monthly_store_metrics`
-  WHERE month_id < '201902'
-  GROUP BY 1
-),
-abs_diff AS (
-  SELECT 
-    STORE_NBR,
-    ABS(metrics.avg_sales - (SELECT avg_sales FROM metrics WHERE STORE_NBR = 88)) AS sales_diff,
-    ABS(metrics.avg_cust - (SELECT avg_cust FROM metrics WHERE STORE_NBR = 88)) AS cust_diff
-  FROM metrics
-)
-SELECT 
-  STORE_NBR,
-  1 - (sales_diff - MIN(sales_diff) OVER()) / (MAX(sales_diff) OVER() - MIN(sales_diff) OVER()) AS mag_sales,
-  1 - (cust_diff - MIN(cust_diff) OVER()) / (MAX(cust_diff) OVER() - MIN(cust_diff) OVER()) AS mag_cust
-FROM abs_diff
-WHERE STORE_NBR IN (159, 91, 204, 1, 240)
-ORDER BY mag_sales DESC;
-
-WITH scaling_factor AS (
-  SELECT 
-    SUM(CASE WHEN STORE_NBR = 88 THEN total_sales END) / 
-    SUM(CASE WHEN STORE_NBR = 91 THEN total_sales END) AS sales_ratio
-  FROM `case-studies-478607.quantium_analysis.monthly_store_metrics`
-  WHERE month_id < '201902'
-)
-SELECT 
-  month_id,
-  MAX(CASE WHEN STORE_NBR = 88 THEN total_sales END) AS trial_sales,
-  ROUND(MAX(CASE WHEN STORE_NBR = 91 THEN total_sales END) * (SELECT sales_ratio FROM scaling_factor), 2) AS scaled_control_sales,
-  ROUND(((MAX(CASE WHEN STORE_NBR = 88 THEN total_sales END) / (MAX(CASE WHEN STORE_NBR = 91 THEN total_sales END) * (SELECT sales_ratio FROM scaling_factor))) - 1) * 100, 2) AS percentage_uplift
-FROM `case-studies-478607.quantium_analysis.monthly_store_metrics`
-WHERE month_id BETWEEN '201902' AND '201904'
-GROUP BY 1
-ORDER BY 1;
