@@ -90,22 +90,25 @@
 
         <pre style="background: #282c34; color: #abb2bf; padding: 1.0rem; border-radius: 8px; overflow-x: auto; margin: 1rem 0 1rem -1.5rem; font-family: 'Courier New', Courier, monospace; font-size: 0.85rem; border: 1px solid #3e4451; width: calc(100% + 1.5rem);">
         <code>
-        -- Separating brand from Prod_Name column
-        CREATE OR REPLACE TABLE `case-studies-478607.quantium_analysis.clean_transactions_data` AS
-        SELECT *,
+        -- Standardizing Brand names and extracting Pack Size
+        CREATE OR REPLACE TABLE `quantium_analysis.clean_transactions_data` AS
+        SELECT 
+            *,
+            -- Extracting the first word and fixing multi-word brands
             CASE 
                 WHEN raw_brand = 'Red' THEN 'Red Rock Deli'
                 WHEN raw_brand = 'Grain' THEN 'Grain Waves'
                 WHEN raw_brand = 'Natural' THEN 'Natural Chip Co'
                 WHEN raw_brand = 'Cobs' THEN 'Cobs Popd'
-                WHEN raw_brand = 'Burger' THEN 'Smiths' -- Burger Rings are a Smiths product
+                WHEN raw_brand = 'Burger' THEN 'Smiths'
                 ELSE raw_brand 
-          END AS BRAND
+            END AS BRAND,
+        -- Extracting the weight as an integer
+        CAST(REGEXP_EXTRACT(PROD_NAME, r'(\d+)') AS INT64) AS PACK_SIZE
         FROM (
-        SELECT 
-            *, 
-            REGEXP_EXTRACT(PROD_NAME, r'^([^\s]+)') AS raw_brand 
-        FROM `case-studies-478607.quantium_analysis.clean_transactions_data`
+        SELECT *, REGEXP_EXTRACT(PROD_NAME, r'^([^\s]+)') AS raw_brand 
+        FROM `quantium_analysis.merged_data`
+        );
 
         -- Separating pack size from Prod_Name column
         CREATE OR REPLACE TABLE `case-studies-478607.quantium_analysis.clean_transactions_data` AS
