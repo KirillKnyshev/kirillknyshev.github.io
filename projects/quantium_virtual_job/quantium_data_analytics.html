@@ -59,20 +59,19 @@
         <pre style="background: #282c34; color: #abb2bf; padding: 1.0rem; border-radius: 8px; overflow-x: auto; margin: 1rem 0 1rem -1.5rem; font-family: 'Courier New', Courier, monospace; font-size: 0.85rem; border: 1px solid #3e4451; width: calc(100% + 1.5rem);">
         <code>
         -- Identifying commercial outliers (Customers buying 200+ packs)
-        CREATE OR REPLACE TABLE `case-studies-478607.quantium_analysis.clean_transactions_data` AS
         SELECT * 
-        FROM `case-studies-478607.quantium_analysis.clean_transactions_data`
+        FROM `case-studies-478607.quantium_analysis.qvi_transaction_data`;
         WHERE PROD_QTY >= 200;
 
-        -- Removing the outlier (Loyalty Card 226000) for clean analysis
+        -- Removing the outlier (Loyalty Card 226000) for clean analysis, and creating a new clean transaction table 
         CREATE OR REPLACE TABLE `case-studies-478607.quantium_analysis.clean_transactions_data` AS
         SELECT * 
-        FROM `case-studies-478607.quantium_analysis.clean_transactions_data`
-        WHERE LYLTY_CARD_NBR = 226000;
+        FROM `case-studies-478607.quantium_analysis.qvi_transaction_data`;
+        WHERE LYLTY_CARD_NBR != 226000;
         </code>
         </pre>
             
-            <li><strong>Data Cleaning & Outlier Removal:</strong>Removing these outliers was critical. Including them would have artificially inflated the "Mainstream" segment's average spend, leading to incorrect strategic recommendations.</li>
+            <li><strong>Data Cleaning & Outlier Removal:</strong>Removing the outliers was critical. Including them would have inflated product quality.</li>
 
         <pre style="background: #282c34; color: #abb2bf; padding: 1.0rem; border-radius: 8px; overflow-x: auto; margin: 1rem 0 1rem -1.5rem; font-family: 'Courier New', Courier, monospace; font-size: 0.85rem; border: 1px solid #3e4451; width: calc(100% + 1.5rem);">
         <code>
@@ -87,43 +86,68 @@
         </code>
         </pre>
             
-            <li><strong>Inner Join:</strong>Joining two tables</li>
+            <li><strong>Inner Join:</strong>Joining two tables.</li>
 
         <pre style="background: #282c34; color: #abb2bf; padding: 1.0rem; border-radius: 8px; overflow-x: auto; margin: 1rem 0 1rem -1.5rem; font-family: 'Courier New', Courier, monospace; font-size: 0.85rem; border: 1px solid #3e4451; width: calc(100% + 1.5rem);">
         <code>
-        -- Extracting Pack Size (Weight) and Brand from Product Name strings
+        -- Separating brand from Prod_Name column
+        CREATE OR REPLACE TABLE `case-studies-478607.quantium_analysis.clean_transactions_data` AS
+        SELECT *,
+            CASE 
+                WHEN raw_brand = 'Red' THEN 'Red Rock Deli'
+                WHEN raw_brand = 'Grain' THEN 'Grain Waves'
+                WHEN raw_brand = 'Natural' THEN 'Natural Chip Co'
+                WHEN raw_brand = 'Cobs' THEN 'Cobs Popd'
+                WHEN raw_brand = 'Burger' THEN 'Smiths' -- Burger Rings are a Smiths product
+                ELSE raw_brand 
+          END AS BRAND
+        FROM (
         SELECT 
-            PROD_NAME,
-            
-        -- Extracting the numeric weight (e.g., '175' from 'Smiths Crinkle Chips 175g')
-            CAST(REGEXP_EXTRACT(PROD_NAME, r'(\d+)') AS INT64) AS PACK_SIZE,
-            
-        -- Splitting the string to get the first word as the Brand
-            SPLIT(PROD_NAME, ' ')[OFFSET(0)] AS BRAND_NAME,
-            TOT_SALES
-        FROM `quantium-strategy.retail_data.transactions`;
+            *, 
+            REGEXP_EXTRACT(PROD_NAME, r'^([^\s]+)') AS raw_brand 
+        FROM `case-studies-478607.quantium_analysis.clean_transactions_data`
+
+        -- Separating pack size from Prod_Name column
+        CREATE OR REPLACE TABLE `case-studies-478607.quantium_analysis.clean_transactions_data` AS
+        SELECT *, CAST(REGEXP_EXTRACT(PROD_NAME, r'(\d+)') AS INT64) AS PACK_SIZE
+        FROM `case-studies-478607.quantium_analysis.clean_transactions_data`;
         </code>
         </pre>
             
-            <li><strong>Feature Engineering (The Calculations):</strong> Explain how you extracted the Pack Size and Brand Name from the messy product strings. This is a high-value skill. 
-                <p style="font-size: 0.9rem; font-style: italic; color: #555; margin-top: 0.5rem;">
-                    <strong>Logic:</strong> Trips under 1 minute often represent maintenance checks or users encountering docking issues. I chose to label these as "False Starts" rather than deleting them immediately, allowing for a cleaner analysis of "Real Rides" while maintaining a full audit trail.</p></li>
-            <li><strong>Data Aggregation & Optimization:</strong> To stay within Tableau's 1GB limit and ensure dashboard responsiveness, I aggregated the 5.5M+ rows into a summary table. I filtered for "Real Rides," extracted temporal features (Month, Season, Hour), and pre-calculated metrics.</li>
-            
+            <li><strong>Brand Standardization and Pack Size:</strong>I pulled the brand names out of the product descriptions using the first word of the string. Since some brands were cut off or used multiple words, 
+                I used a CASE statement to clean those up and make sure every brand was labeled correctly. The same concept for pack sizes, but the first numbers of string</li> 
+                  
         <pre style="background: #282c34; color: #abb2bf; padding: 1.0rem; border-radius: 8px; overflow-x: auto; margin: 1rem 0 1rem -1.5rem; font-family: 'Courier New', Courier, monospace; font-size: 0.85rem; border: 1px solid #3e4451; width: calc(100% + 1.5rem);">
         <code>
-        -- Calculating Sales Uplift for Trial Store 77 vs Control Store 233
+        -- 1. TOTAL SALES BY SEGMENT (Who spends the most?)
         SELECT 
-            STORE_NBR,
-            YEAR_MONTH,
-            SUM(TOT_SALES) AS monthly_sales,
-            
-        -- Percentage difference calculation
-        (SUM(TOT_SALES) - LAG(SUM(TOT_SALES)) OVER (ORDER BY YEAR_MONTH)) / 
-        LAG(SUM(TOT_SALES)) OVER (ORDER BY YEAR_MONTH) * 100 AS sales_uplift
-        FROM `quantium-strategy.retail_data.trial_results`
-        WHERE STORE_NBR IN (77, 233)
-        GROUP BY 1, 2;
+            LIFESTAGE,
+            PREMIUM_CUSTOMER,
+            ROUND(SUM(TOT_SALES), 2) AS TOTAL_SALES
+        FROM `case-studies-478607.quantium_analysis.transaction_purchase_behavior_merged_data`
+        GROUP BY LIFESTAGE, PREMIUM_CUSTOMER
+        ORDER BY TOTAL_SALES DESC;
+
+        -- 2. CUSTOMER PROFILING (How many customers and how much do they buy?)
+        SELECT 
+            LIFESTAGE,
+            PREMIUM_CUSTOMER,
+            COUNT(DISTINCT LYLTY_CARD_NBR) AS UNIQUE_CUSTOMERS,
+            ROUND(SUM(PROD_QTY) / COUNT(DISTINCT LYLTY_CARD_NBR), 2) AS AVG_UNITS_PER_CUST,
+            ROUND(SUM(TOT_SALES) / SUM(PROD_QTY), 2) AS AVG_PRICE_PER_UNIT
+        FROM `case-studies-478607.quantium_analysis.transaction_purchase_behavior_merged_data`
+        GROUP BY LIFESTAGE, PREMIUM_CUSTOMER
+        ORDER BY UNIQUE_CUSTOMERS DESC;
+
+        -- 3. PACK SIZE ANALYSIS (What sizes do they prefer?)
+        SELECT 
+            LIFESTAGE,
+            PREMIUM_CUSTOMER,
+            ROUND(AVG(PACK_SIZE), 2) AS AVG_PACK_SIZE,
+            APPROX_TOP_SUM(CAST(PACK_SIZE AS STRING), 1, 1)[OFFSET(0)].value AS MOST_COMMON_PACK
+        FROM `case-studies-478607.quantium_analysis.transaction_purchase_behavior_merged_data`
+        GROUP BY LIFESTAGE, PREMIUM_CUSTOMER
+        ORDER BY AVG_PACK_SIZE DESC;
         </code>
         </pre>
             
