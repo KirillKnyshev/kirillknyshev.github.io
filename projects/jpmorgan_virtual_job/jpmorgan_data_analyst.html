@@ -122,33 +122,88 @@
 
         <pre style="background: #282c34; color: #abb2bf; padding: 1.0rem; border-radius: 8px; overflow-x: auto; margin: 1rem 0 1rem -1.5rem; font-family: 'Courier New', Courier, monospace; font-size: 0.85rem; border: 1px solid #3e4451; width: calc(100% + 1.5rem);">
         <code>
-        -- checking for NULLs and short trips
+        -- 1. SET CONTRACT PARAMETERS
+        DECLARE injection_date DATE DEFAULT '2024-06-15';
+        DECLARE withdrawal_date DATE DEFAULT '2024-12-15';
+        DECLARE quantity FLOAT64 DEFAULT 1000000; -- 1M MMBtu
+        DECLARE storage_cost_per_month FLOAT64 DEFAULT 100000;
+        DECLARE injection_withdrawal_cost_per_unit FLOAT64 DEFAULT 0.01; 
+        DECLARE transport_cost FLOAT64 DEFAULT 50000;
+
+        -- 2. BUILD THE COMPLETE PRICE CURVE
+        WITH historical AS (
+        SELECT Dates, Prices FROM `case-studies-478607.jpmorgan_analysis.nat_gas`
+        ),
+        trend_calc AS (
         SELECT 
-        COUNT(*) AS total_rows,
-        COUNTIF(ride_id IS NULL) AS missing_ids,
-        COUNTIF(started_at IS NULL OR ended_at IS NULL) AS missing_timestamps,
-        COUNTIF(start_station_name IS NULL) AS null_start_stations,
-        COUNTIF(end_station_name IS NULL) AS null_end_stations,
-            
-        -- Identifying False Starts (trips under 60 seconds)
-        COUNTIF(TIMESTAMP_DIFF(ended_at, started_at, SECOND) <= 60) AS short_trips_under_60s
-        FROM `case-studies-478607.case_study_ggle.all_trips`;
+            (COUNT(*) * SUM(UNIX_DATE(Dates) * Prices) - SUM(UNIX_DATE(Dates)) * SUM(Prices)) / 
+            (COUNT(*) * SUM(POW(UNIX_DATE(Dates), 2)) - POW(SUM(UNIX_DATE(Dates)), 2)) AS slope,
+            AVG(Prices) - ((COUNT(*) * SUM(UNIX_DATE(Dates) * Prices) - SUM(UNIX_DATE(Dates)) * SUM(Prices)) / 
+            (COUNT(*) * SUM(POW(UNIX_DATE(Dates), 2)) - POW(SUM(UNIX_DATE(Dates)), 2))) * AVG(UNIX_DATE(Dates)) AS intercept,
+            AVG(Prices) as overall_avg
+            FROM historical
+        ),
+        seasonal_averages AS (
+        SELECT EXTRACT(MONTH FROM Dates) AS m_num, AVG(Prices) AS m_avg FROM historical GROUP BY 1
+        ),
+        full_curve AS (
+        SELECT Dates, Prices FROM historical
+        UNION ALL
+        SELECT 
+            f_date,
+            (slope * UNIX_DATE(f_date) + intercept) + (m_avg - (SELECT overall_avg FROM trend_calc))
+        FROM UNNEST(GENERATE_DATE_ARRAY('2024-10-31', '2025-09-30', INTERVAL 1 MONTH)) AS f_date
+        CROSS JOIN trend_calc
+        JOIN seasonal_averages ON EXTRACT(MONTH FROM f_date) = m_num
+        ),
+
+        -- 3. INTERPOLATE PRICES
+        bounds AS (
+        SELECT 
+            Dates AS start_date, Prices AS start_price,
+            LEAD(Dates) OVER(ORDER BY Dates) AS end_date,
+            LEAD(Prices) OVER(ORDER BY Dates) AS end_price
+        FROM full_curve
+        ),
+        interpolated_prices AS (
+        SELECT 
+            input_date,
+            start_price + (end_price - start_price) * (DATE_DIFF(input_date, start_date, DAY) / NULLIF(DATE_DIFF(end_date, start_date, DAY), 0)) AS price
+        FROM bounds, UNNEST([injection_date, withdrawal_date]) AS input_date
+        WHERE input_date >= start_date AND input_date < end_date
+        ),
+        
+        -- 4. AGGREGATE RESULTS
+        contract_values AS (
+        SELECT 
+            MAX(CASE WHEN input_date = injection_date THEN price END) AS buy_price,
+            MAX(CASE WHEN input_date = withdrawal_date THEN price END) AS sell_price
+        FROM interpolated_prices
+        )
+
+        -- 5. FINAL CALCULATION
+        SELECT 
+            ROUND(buy_price, 4) AS injection_price,
+            ROUND(sell_price, 4) AS withdrawal_price,
+            ROUND((sell_price - buy_price) * quantity, 2) AS gross_profit,
+            ROUND(DATE_DIFF(withdrawal_date, injection_date, MONTH) * storage_cost_per_month, 2) AS total_storage_costs,
+            ROUND((quantity * injection_withdrawal_cost_per_unit * 2) + (transport_cost * 2), 2) AS total_ops_costs,
+            ROUND(((sell_price - buy_price) * quantity) 
+            - (DATE_DIFF(withdrawal_date, injection_date, MONTH) * storage_cost_per_month)
+            - (quantity * injection_withdrawal_cost_per_unit * 2)
+            - (transport_cost * 2), 2) AS net_contract_value
+        FROM contract_values;
         </code>
         </pre>
 
         <div style="text-align: center; margin: 1.5rem 0 2rem -1.5rem; width: calc(100% + 1.5rem);">
-        <img src="google_imagies/Data Quality Audit.PNG" alt="BigQuery Query Results" style="width: 100%; max-width: 800px; border: 1px solid #ddd; border-radius: 8px; display: block; margin: 0 auto;">
-        <p style="font-size: 0.8rem; color: #777; margin-top: 0.5rem;">Figure 2:Results identifying NULLs.</p>
-        </div>
-
-        <div style="background-color: #fff4e5; border-left: 5px solid #ffa000; padding: 1rem; margin: 1rem 0 2rem -1.5rem; width: calc(100% + 1.5rem); border-radius: 4px;">
-        <p style="font-size: 0.9rem; margin: 0; color: #663c00;">
-        <strong>💡 Analytic Justification:</strong> 
-        While the audit identified over 1.2M records with missing <code>end_station_name</code>, I made the strategic decision to <strong>preserve this data</strong>. 
-        Because these records still contained accurate timestamps and GPS coordinates, they remain vital for calculating total trip volumes and average durations. Deleting 20% of the dataset would have resulted in a significant underestimation of total system usage.</p>
+        <img src="jpmorgan_imagies/task_two_results.PNG" alt="BigQuery Query Results" style="width: 100%; max-width: 800px; border: 1px solid #ddd; border-radius: 8px; display: block; margin: 0 auto;">
+        <p style="font-size: 0.8rem; color: #777; margin-top: 0.5rem;">Figure 4:Results identifying NULLs.</p>
         </div>
             
-            <li><strong>Advanced Transformation & Imputation:</strong> To preserve data volume, I chose not to delete rows with missing station names. Instead, I used <code>IFNULL</code> to categorize them, while simultaneously calculating trip durations and extracting calendar data.</li>
+            <li><strong>The Concept:</strong> Evaluated the economic feasibility of "Time Arbitrage" buying gas during low-demand summer months and selling during high-demand winter peaks.</li>
+            <li><strong>Technical Implementation:</strong> Developed a SQL-based valuation engine that integrates the interpolated price curve with operational constraints.</li>
+            <li><strong>Key Consideration:</strong> The model accounts for the "Cost of Carry," ensuring that storage, injection, and logistics fees are deducted to provide a true net value for the trading desk.</li>
 
         <pre style="background: #282c34; color: #abb2bf; padding: 1.0rem; border-radius: 8px; overflow-x: auto; margin: 1rem 0 1rem -1.5rem; font-family: 'Courier New', Courier, monospace; font-size: 0.85rem; border: 1px solid #3e4451; width: calc(100% + 1.5rem);">
         <code>
