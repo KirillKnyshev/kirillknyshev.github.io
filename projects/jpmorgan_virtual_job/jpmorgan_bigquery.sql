@@ -114,3 +114,38 @@ SELECT
     - (quantity * injection_withdrawal_cost_per_unit * 2)
     - (transport_cost * 2), 2) AS net_contract_value
 FROM contract_values;
+
+-- Task Three
+SELECT 
+    customer_id,
+    fico_score,
+    loan_amt_outstanding, -- Fixed column name
+    total_debt_outstanding,
+    income,
+    -- 1. Categorizing Risk Tiers
+    CASE 
+        WHEN fico_score >= 750 THEN 'Low Risk'
+        WHEN fico_score >= 670 THEN 'Medium Risk'
+        WHEN fico_score >= 580 THEN 'High Risk'
+        ELSE 'Critical Risk'
+    END AS risk_category,
+    -- 2. Estimating Probability of Default (PD)
+    CASE 
+        WHEN fico_score >= 750 THEN 0.02 
+        WHEN fico_score >= 670 THEN 0.08 
+        WHEN fico_score >= 580 THEN 0.20 
+        ELSE 0.45 
+    END AS estimated_pd,
+    -- 3. Calculating Expected Loss (assuming 10% recovery as per task)
+    -- Formula: (Loan Amount * PD) * (1 - Recovery Rate)
+    ROUND((loan_amt_outstanding * (
+        CASE 
+            WHEN fico_score >= 750 THEN 0.02 
+            WHEN fico_score >= 670 THEN 0.08 
+            WHEN fico_score >= 580 THEN 0.20 
+            ELSE 0.45 
+        END
+    )) * 0.9, 2) AS expected_loss
+FROM `case-studies-478607.jpmorgan_analysis.loan_data`;
+
+-- Task Four
