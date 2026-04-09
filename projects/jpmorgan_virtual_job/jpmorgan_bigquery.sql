@@ -149,3 +149,17 @@ SELECT
 FROM `case-studies-478607.jpmorgan_analysis.loan_data`;
 
 -- Task Four
+SELECT 
+    CASE 
+        WHEN fico_score >= 800 THEN '800-850 (Exceptional)' 
+        WHEN fico_score >= 740 THEN '740-799 (Very Good)' 
+        WHEN fico_score >= 670 THEN '670-739 (Good)' 
+        WHEN fico_score >= 580 THEN '580-669 (Fair)' 
+        ELSE '300-579 (Poor)' 
+    END AS fico_bucket,
+    COUNT(*) AS total_customers,
+    SUM(`default`) AS total_defaults,
+    ROUND(AVG(`default`) * 100, 2) AS default_rate_percentage
+FROM `case-studies-478607.jpmorgan_analysis.loan_data`
+GROUP BY 1
+ORDER BY fico_bucket DESC;
