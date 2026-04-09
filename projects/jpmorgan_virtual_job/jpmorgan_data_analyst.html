@@ -170,7 +170,7 @@
             input_date,
             start_price + (end_price - start_price) * (DATE_DIFF(input_date, start_date, DAY) / NULLIF(DATE_DIFF(end_date, start_date, DAY), 0)) AS price
         FROM bounds, UNNEST([injection_date, withdrawal_date]) AS input_date
-        WHERE input_date >= start_date AND input_date < end_date
+        WHERE input_date >= start_date AND input_date < end_data
         ),
         
         -- 4. AGGREGATE RESULTS
@@ -206,37 +206,45 @@
             <li><strong>Key Consideration:</strong> The model accounts for the "Cost of Carry," ensuring that storage, injection, and logistics fees are deducted to provide a true net value for the trading desk.</li>
 
         <pre style="background: #282c34; color: #abb2bf; padding: 1.0rem; border-radius: 8px; overflow-x: auto; margin: 1rem 0 1rem -1.5rem; font-family: 'Courier New', Courier, monospace; font-size: 0.85rem; border: 1px solid #3e4451; width: calc(100% + 1.5rem);">
-        <code>
-        -- Building the final cleaned table: all_trips_v2
-        CREATE TABLE `case-studies-478607.case_study_ggle.all_trips_v2` AS
         SELECT 
-            ride_id, rideable_type, member_casual,
-            
-        -- Missing Station Names 
-        IFNULL(start_station_name, 'On-Street / Virtual Dock') AS start_station_name,
-        IFNULL(end_station_name, 'On-Street / Virtual Dock') AS end_station_name,
-        start_lat, start_lng, end_lat, end_lng, started_at, ended_at,
-                        
-        -- Calculate Ride Length in Minutes
-        ROUND(TIMESTAMP_DIFF(ended_at, started_at, SECOND) / 60, 2) AS ride_length_minutes,
-                        
-        -- Day of the Week
-        FORMAT_TIMESTAMP('%A', started_at) AS day_of_week,
-                    
-        -- Create a Trip Type Category
+            customer_id,
+            fico_score,
+            loan_amt_outstanding, -- Fixed column name
+            total_debt_outstanding,
+            income,
+    
+        -- 1. Categorizing Risk Tiers
         CASE 
-            WHEN TIMESTAMP_DIFF(ended_at, started_at, SECOND) <= 60 THEN 'False Start'
-            ELSE 'Real Ride'
-        END AS trip_type
-        FROM `case-studies-478607.case_study_ggle.all_trips`
-        WHERE TIMESTAMP_DIFF(ended_at, started_at, SECOND) >= 0;
+            WHEN fico_score >= 750 THEN 'Low Risk'
+            WHEN fico_score >= 670 THEN 'Medium Risk'
+            WHEN fico_score >= 580 THEN 'High Risk'
+            ELSE 'Critical Risk'
+        END AS risk_category,
+    
+    -- 2. Estimating Probability of Default (PD)
+    CASE 
+        WHEN fico_score >= 750 THEN 0.02 
+        WHEN fico_score >= 670 THEN 0.08 
+        WHEN fico_score >= 580 THEN 0.20 
+        ELSE 0.45 
+    END AS estimated_pd,
+    -- 3. Calculating Expected Loss (assuming 10% recovery as per task)
+    -- Formula: (Loan Amount * PD) * (1 - Recovery Rate)
+    ROUND((loan_amt_outstanding * (
+        CASE 
+            WHEN fico_score >= 750 THEN 0.02 
+            WHEN fico_score >= 670 THEN 0.08 
+            WHEN fico_score >= 580 THEN 0.20 
+            ELSE 0.45 
+        END
+    )) * 0.9, 2) AS expected_loss
+    FROM `case-studies-478607.jpmorgan_analysis.loan_data`;
         </code>
         </pre>
             
-            <li><strong>Defining "False Starts":</strong> I implemented a 60-second threshold to identify non-journey data. 
-                <p style="font-size: 0.9rem; font-style: italic; color: #555; margin-top: 0.5rem;">
-                    <strong>Logic:</strong> Trips under 1 minute often represent maintenance checks or users encountering docking issues. I chose to label these as "False Starts" rather than deleting them immediately, allowing for a cleaner analysis of "Real Rides" while maintaining a full audit trail.</p></li>
-            <li><strong>Data Aggregation & Optimization:</strong> To stay within Tableau's 1GB limit and ensure dashboard responsiveness, I aggregated the 5.5M+ rows into a summary table. I filtered for "Real Rides," extracted temporal features (Month, Season, Hour), and pre-calculated metrics.</li>
+            <li><strong>Objective:</strong> Develop a predictive model to estimate the Probability of Default (PD) for the retail banking loan portfolio.</li>
+            <li><strong>Business Impact:</strong> Accurate PD modeling allows the bank to maintain appropriate capital reserves (Loss Allowances) and price loans more effectively based on risk.</li>
+            <li><strong>Technical Approach:</strong> I transitioned from commodity pricing to logistic classification logic, using customer credit metrics to segment the loan book into risk buckets.</li>
             
         <pre style="background: #282c34; color: #abb2bf; padding: 1.0rem; border-radius: 8px; overflow-x: auto; margin: 1rem 0 1rem -1.5rem; font-family: 'Courier New', Courier, monospace; font-size: 0.85rem; border: 1px solid #3e4451; width: calc(100% + 1.5rem);">
         <code>
