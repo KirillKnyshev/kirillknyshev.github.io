@@ -31,13 +31,10 @@
 
     <div style="max-width: 1000px; margin: 0 auto; padding: 2rem 5%;">
         <h2 style="margin-top: 0;">Overview</h2>
-        <p>As a junior analyst at Cyclistic, I was asked to tackle a challenge that’s central to our growth: how do we turn weekend explorers into daily commuters? By analyzing over 5.7 million trips, 
-            I looked for the tipping point, the specific behaviors that distinguish our casual riders from our loyal annual members. My goal was to hand the marketing team a roadmap for high-impact conversion strategies.</p>
+        <p>As a Quantitative Researcher, I developed a credit risk model to predict mortgage defaults and optimized FICO score quantization for machine learning inputs.</p>
         
         <h2 style="margin-top: 2rem;">Tools & Technology</h2>
-        <p><strong>SQL (BigQuery):</strong> Processed and cleaned over 5.7 million rows of historical trip data, including data merging (UNION) and handling missing April datasets. <br>
-           <strong>Tableau:</strong> Designed an interactive executive dashboard featuring ride heatmaps, hourly usage trends, and seasonal analysis. <br>
-           <strong>Spreadsheets:</strong> Performed initial data validation and documented cleaning steps for stakeholder transparency.</p>
+        <p><strong>SQL (BigQuery):</strong> Engineered a credit risk pipeline to analyze 10,000+ loan records and perform FICO score optimization <br>
 
         <h2 style="margin-top: 2rem;">The Process</h2>
         <p>To ensure the data was clean, consistent, and ready for analysis, I followed these steps:</p>
@@ -198,7 +195,7 @@
 
         <div style="text-align: center; margin: 1.5rem 0 2rem -1.5rem; width: calc(100% + 1.5rem);">
         <img src="jpmorgan_imagies/task_two_results.PNG" alt="BigQuery Query Results" style="width: 100%; max-width: 800px; border: 1px solid #ddd; border-radius: 8px; display: block; margin: 0 auto;">
-        <p style="font-size: 0.8rem; color: #777; margin-top: 0.5rem;">Figure 4:Results identifying NULLs.</p>
+        <p style="font-size: 0.8rem; color: #777; margin-top: 0.5rem;">Figure 4: Results.</p>
         </div>
             
             <li><strong>The Concept:</strong> Evaluated the economic feasibility of "Time Arbitrage" buying gas during low-demand summer months and selling during high-demand winter peaks.</li>
@@ -241,6 +238,11 @@
     FROM `case-studies-478607.jpmorgan_analysis.loan_data`;
         </code>
         </pre>
+
+        <div style="text-align: center; margin: 1.5rem 0 2rem -1.5rem; width: calc(100% + 1.5rem);">
+        <img src="jpmorgan_imagies/task_three.PNG" alt="BigQuery Query Results" style="width: 100%; max-width: 800px; border: 1px solid #ddd; border-radius: 8px; display: block; margin: 0 auto;">
+        <p style="font-size: 0.8rem; color: #777; margin-top: 0.5rem;">Figure 5: Results</p>
+        </div>
             
             <li><strong>Objective:</strong> Develop a predictive model to estimate the Probability of Default (PD) for the retail banking loan portfolio.</li>
             <li><strong>Business Impact:</strong> Accurate PD modeling allows the bank to maintain appropriate capital reserves (Loss Allowances) and price loans more effectively based on risk.</li>
@@ -248,57 +250,31 @@
             
         <pre style="background: #282c34; color: #abb2bf; padding: 1.0rem; border-radius: 8px; overflow-x: auto; margin: 1rem 0 1rem -1.5rem; font-family: 'Courier New', Courier, monospace; font-size: 0.85rem; border: 1px solid #3e4451; width: calc(100% + 1.5rem);">
         <code>
-        -- Build the final table for Tableau
-            SELECT 
-            member_casual, 
-            rideable_type, 
-            day_of_week, 
-            FORMAT_TIMESTAMP('%B', started_at) AS month_name,
-            
-        -- Seasons
-        CASE 
-            WHEN FORMAT_TIMESTAMP('%B', started_at) IN ('December', 'January', 'February') 
-                THEN 'Winter'
-            WHEN FORMAT_TIMESTAMP('%B', started_at) IN ('March', 'April', 'May') 
-                THEN 'Spring'
-            WHEN FORMAT_TIMESTAMP('%B', started_at) IN ('June', 'July', 'August') 
-                THEN 'Summer'
-            ELSE 'Fall' 
-        END AS season,
-            
-        -- Peak Hours
-        EXTRACT(HOUR FROM started_at) AS start_hour,
-        start_station_name, start_lat, start_lng,
-            
-        -- Aggregates     
-        COUNT(*) AS total_trips,
-        ROUND(AVG(ride_length_minutes), 2) AS avg_duration_mins
-        FROM `case-studies-478607.case_study_ggle.all_trips_v2`
-        WHERE trip_type = 'Real Ride'
-        GROUP BY 1, 2, 3, 4, 5, 6, 7, 8, 9;
-        </code>
-        </pre>
-            
-            <li><strong>Storage Optimization & Error Tracking:</strong> To stay under Tableau’s 1GB limit, I separated "False Starts" into a distinct summary table. This allowed me to analyze system friction (failed unlocks) without bloating the primary analysis dataset.</li>
-            
-        <pre style="background: #282c34; color: #abb2bf; padding: 1.0rem; border-radius: 8px; overflow-x: auto; margin: 1rem 0 1rem -1.5rem; font-family: 'Courier New', Courier, monospace; font-size: 0.85rem; border: 1px solid #3e4451; width: calc(100% + 1.5rem);">
-        <code>
-        -- False Starts
-        SELECT   
-            member_casual, 
-            rideable_type, 
-            day_of_week, 
-        COUNT(*) AS total_false_starts
-         FROM `case-studies-478607.case_study_ggle.all_trips_v2`
-        WHERE trip_type = 'False Start'
-        GROUP BY 1, 2, 3;
+        SELECT 
+            CASE 
+                WHEN fico_score >= 800 THEN '800-850 (Exceptional)' 
+                WHEN fico_score >= 740 THEN '740-799 (Very Good)' 
+                WHEN fico_score >= 670 THEN '670-739 (Good)' 
+                WHEN fico_score >= 580 THEN '580-669 (Fair)' 
+                ELSE '300-579 (Poor)' 
+            END AS fico_bucket,
+            COUNT(*) AS total_customers,
+            SUM(`default`) AS total_defaults,
+            ROUND(AVG(`default`) * 100, 2) AS default_rate_percentage
+        FROM `case-studies-478607.jpmorgan_analysis.loan_data`
+        GROUP BY 1
+        ORDER BY fico_bucket DESC;
         </code>
         </pre>
 
         <div style="text-align: center; margin: 1.5rem 0 2rem -1.5rem; width: calc(100% + 1.5rem);">
-        <img src="google_imagies/short_trip_under_60s.PNG" alt="BigQuery Query Results" style="width: 100%; max-width: 200px; border: 1px solid #ddd; border-radius: 8px; display: block; margin: 0 auto;">
-        <p style="font-size: 0.8rem; color: #777; margin-top: 0.5rem;">Figure 3: Audit results identifying 148,529 trips under 60 seconds.</p>
+        <img src="jpmorgan_imagies/task_four.PNG" alt="BigQuery Query Results" style="width: 100%; max-width: 800px; border: 1px solid #ddd; border-radius: 8px; display: block; margin: 0 auto;">
+        <p style="font-size: 0.8rem; color: #777; margin-top: 0.5rem;">Figure 6: Results</p>
         </div>
+            
+            <li><strong>Objective:</strong> Optimize FICO score binning to improve the performance of a mortgage default predictive model.</li>
+            <li><strong>The Problem:</strong> FICO scores are granular (300–850). To be used in Charlie's categorical model, they must be mapped into "buckets" that maximize the difference in default probabilities between groups.</li>
+            <li><strong>Technical Approach:</strong> I utilized Statistical Binning in BigQuery to analyze the default rate variance across the score spectrum. This ensured that the resulting categories (e.g., 'Exceptional' vs. 'Fair') were mathematically distinct, reducing model noise.</li>
            
         <h2 style="margin-top: 2rem;">Key Insights & Results</h2>
         <div style="display: flex; flex-direction: column; gap: 2rem; margin-top: 2rem;">
