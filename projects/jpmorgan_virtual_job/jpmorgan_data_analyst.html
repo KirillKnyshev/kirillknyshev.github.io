@@ -55,16 +55,70 @@
             
         <pre style="background: #282c34; color: #abb2bf; padding: 1.0rem; border-radius: 8px; overflow-x: auto; margin: 1rem 0 1rem -1.5rem; font-family: 'Courier New', Courier, monospace; font-size: 0.85rem; border: 1px solid #3e4451; width: calc(100% + 1.5rem);">
         <code>
-        -- Union the missing April 2025 data with the main table
-        INSERT INTO `case-studies-478607.case_study_ggle.all_trips`
-        SELECT * FROM `case-studies-478607.case_study_ggle.202504_divvy_tripdata`;
-                    
-        -- Verifying total record count (Result: 5.55M rows)
-        SELECT COUNT(*) FROM `case-studies-478607.case_study_ggle.all_trips`;
+        -- SET YOUR DATE HERE
+        DECLARE input_date DATE DEFAULT '2025-05-15'; 
+
+        WITH historical AS (
+        SELECT Dates, Prices FROM `case-studies-478607.jpmorgan_analysis.nat_gas`
+        ),
+        
+        -- 1. Calculate the Trend & Seasonality for the Forecast
+        trend_calc AS (
+        SELECT 
+            (COUNT(*) * SUM(UNIX_DATE(Dates) * Prices) - SUM(UNIX_DATE(Dates)) * SUM(Prices)) / 
+            (COUNT(*) * SUM(POW(UNIX_DATE(Dates), 2)) - POW(SUM(UNIX_DATE(Dates)), 2)) AS slope,
+            AVG(Prices) - ((COUNT(*) * SUM(UNIX_DATE(Dates) * Prices) - SUM(UNIX_DATE(Dates)) * SUM(Prices)) / 
+            (COUNT(*) * SUM(POW(UNIX_DATE(Dates), 2)) - POW(SUM(UNIX_DATE(Dates)), 2))) * AVG(UNIX_DATE(Dates)) AS intercept,
+            AVG(Prices) as overall_avg
+        FROM historical
+        ),
+        seasonal_averages AS (
+        SELECT EXTRACT(MONTH FROM Dates) AS m_num, AVG(Prices) AS m_avg FROM historical GROUP BY 1
+        ),
+            
+        -- 2. Combine Historical and Forecasted into one Master List
+        full_curve AS (
+        SELECT Dates, Prices FROM historical
+        UNION ALL
+        SELECT 
+            f_date,
+            (slope * UNIX_DATE(f_date) + intercept) + (m_avg - (SELECT overall_avg FROM trend_calc))
+        FROM UNNEST(GENERATE_DATE_ARRAY('2024-10-31', '2025-09-30', INTERVAL 1 MONTH)) AS f_date
+        CROSS JOIN trend_calc
+        JOIN seasonal_averages ON EXTRACT(MONTH FROM f_date) = m_num
+        ),
+    
+        -- 3. Find the two closest dates to our 'input_date'
+        bounds AS (
+        SELECT 
+            Dates AS start_date,
+            Prices AS start_price,
+            LEAD(Dates) OVER(ORDER BY Dates) AS end_date,
+            LEAD(Prices) OVER(ORDER BY Dates) AS end_price
+        FROM full_curve
+        )
+    
+        -- 4. Final Interpolation Calculation
+        SELECT 
+            input_date,
+            ROUND(start_price + (end_price - start_price) * (DATE_DIFF(input_date, start_date, DAY) / NULLIF(DATE_DIFF(end_date, start_date, DAY), 0)), 4) AS estimated_price
+        FROM bounds
+        WHERE input_date >= start_date AND input_date < end_date;
         </code>
         </pre>
+
+        <div style="text-align: center; margin: 1.5rem 0 2rem -1.5rem; width: calc(100% + 1.5rem);">
+        <img src="google_imagies/Data Quality Audit.PNG" alt="BigQuery Query Results" style="width: 100%; max-width: 800px; border: 1px solid #ddd; border-radius: 8px; display: block; margin: 0 auto;">
+        <p style="font-size: 0.8rem; color: #777; margin-top: 0.5rem;">Figure 2: Historical date: 2022-03-15</p>
+        </div>
+
+        <div style="text-align: center; margin: 1.5rem 0 2rem -1.5rem; width: calc(100% + 1.5rem);">
+        <img src="google_imagies/Data Quality Audit.PNG" alt="BigQuery Query Results" style="width: 100%; max-width: 800px; border: 1px solid #ddd; border-radius: 8px; display: block; margin: 0 auto;">
+        <p style="font-size: 0.8rem; color: #777; margin-top: 0.5rem;">Figure 3: Forcasted date: 2025-07-20</p>
+        </div>
             
-            <li><strong>Data Quality Audit:</strong> After encountering significant performance lag in Excel due to the 5.5M+ row count, I migrated the audit process to BigQuery. I wrote a comprehensive validation script to identify missing values (NULLs) and anomalies across all key fields.</li>
+            <li><strong>Forecasting:</strong> I developed a custom SQL engine in BigQuery that performs linear interpolation across a hybrid historical and forecasted price curve. 
+                This allows the trading desk to retrieve an accurate price estimate for any arbitrary date, fulfilling the core requirement for granular contract pricing.</li>
 
         <pre style="background: #282c34; color: #abb2bf; padding: 1.0rem; border-radius: 8px; overflow-x: auto; margin: 1rem 0 1rem -1.5rem; font-family: 'Courier New', Courier, monospace; font-size: 0.85rem; border: 1px solid #3e4451; width: calc(100% + 1.5rem);">
         <code>
