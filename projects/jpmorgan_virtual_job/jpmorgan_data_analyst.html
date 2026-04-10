@@ -287,39 +287,40 @@
         <div style="display: flex; flex-wrap: wrap; gap: 2rem; align-items: center;">
             <img src="google_imagies/the_commute_gap_visual.PNG" alt="Hourly Usage Chart" style="flex: 1; min-width: 300px; max-width: 450px; border-radius: 8px; border: 1px solid #ddd;">
             <div style="flex: 1; min-width: 300px;">
-                <strong>The Commute Gap:</strong>While casual riders peak on weekends for leisure, members show heavy "Utility Usage" during weekday rush hours. 
-                <p style="margin-top: 0.5rem; font-style: italic; font-size: 0.9rem; color: #555;">Impact: Marketing should pivot from 'lifestyle' ads to 'commuter efficiency' messaging for high-frequency casual users.</p>
+                <strong>Portfolio Risk Concentration:</strong> The vast majority of the loan book (over 75%) is concentrated in the </strong>Exceptional</strong> and </strong>Very Good</strong> FICO buckets. 
+                <p style="margin-top: 0.5rem; font-style: italic; font-size: 0.9rem; color: #555;">Result: This indicates a high-quality portfolio with low systemic risk, reflected in the "mostly green" status of the exposure dashboard.</p>
             </div>
         </div>
         <div style="display: flex; flex-wrap: wrap; gap: 2rem; align-items: center; flex-direction: row-reverse;">
             <img src="google_imagies/the_tourist_vs_local_visual.PNG" alt="Heatmap Focus" style="flex: 1; min-width: 300px; max-width: 450px; border-radius: 8px; border: 1px solid #ddd;">
             <div style="flex: 1; min-width: 300px;">
-                <strong>Geographic Filtering:</strong>Casual usage is concentrated at tourist landmarks, whereas members are spread across residential/commercial hubs. 
-                <p style="margin-top: 0.5rem; font-style: italic; font-size: 0.9rem; color: #555;">Impact: Conversion campaigns should be geo-fenced to residential 'commuter-belt' stations rather than tourist hotspots.</p>
+                <strong>The "Risk-to-Loss" Multiplier:</strong> While the </strong>'Poor' (300-579)</strong> bucket contains the smallest number of customers, it carries a 45% Probability of Default.
+                <p style="margin-top: 0.5rem; font-style: italic; font-size: 0.9rem; color: #555;">Result: My model shows that these few customers contribute disproportionately to the Total Expected Loss, requiring the bank to hold higher capital reserves for this specific segment despite its small size.</p>
             </div>
         </div>
         <div style="display: flex; flex-wrap: wrap; gap: 2rem; align-items: center;">
             <img src="google_imagies/the_seasonal_window_visual.PNG" alt="Seasonal Monthly Chart" style="flex: 1; min-width: 300px; max-width: 450px; border-radius: 8px; border: 1px solid #ddd;">
             <div style="flex: 1; min-width: 300px;">
-                <strong>Seasonal Conversion Window:</strong>Casual ridership is highly weather-dependent, spiking in the spring. 
-                <p style="margin-top: 0.5rem; font-style: italic; font-size: 0.9rem; color: #555;">Impact: The 'Membership Drive' should be launched in April (coinciding with the April data surge identified in the audit) to capture riders as they form new habits.</p>
+                <strong>Income vs. Default Stability:</strong> The scatter plot analysis reveals that higher-income tiers generally align with lower PD categories, validating the model's economic logic. 
+                <p style="margin-top: 0.5rem; font-style: italic; font-size: 0.9rem; color: #555;">Result: This confirms that FICO score quantization effectively captures the borrower’s capacity to repay, making it a reliable feature for future predictive modeling..</p>
             </div>
         </div>
         </div>      
 
         <h2 style="margin-top: 2rem;">Final Recommendations</h2>
-        <p>Based on the analysis, here are the top three strategic recommendations to convert casual riders into annual members:</p>
+        <p>Based on the analysis, here are the top three strategic recommendations:</p>
         <ul style="text-align: left; margin-left: 1.5rem;">
-            <li><strong>Digital Marketing at "Leisure Hotspots":</strong> Focus social media and email campaigns on the top-performing stations identified in the <a href="https://public.tableau.com/app/profile/kirill.knyshev/viz/CyclisticCaseStudy-InProgress/CyclisticSummary#1" target="_blank">Ride Heatmap</a>, specifically near the lakefront and tourist attractions where casual usage is highest.</li>
-            <li><strong>Weekend-to-Weekday Membership Trials:</strong> Since casual riders peak on weekends, offer a "Weekend Member" trial that provides discounted weekday rates, encouraging them to test the bikes for daily commuting—the primary behavior of annual members[cite: 2].</li>
-            <li><strong>Seasonal "Spring-Start" Promotions:</strong> Launch targeted conversion campaigns in late March and April to coincide with the identified seasonal surge in ridership, offering a "First Year Member" discount for new sign-ups during the spring transition[cite: 2].</li>
-
+            <li><strong>Adjust Capital Reserves:</strong> Increase the loss allowance specifically for the "Fair" and "Poor" buckets to hedge against the higher PD identified in </strong>Task 3</strong></li>
+            <li><strong>Targeted Lending:</strong> Expand marketing efforts toward the "Good" and "Very Good" segments, as they show the best balance of high loan volume and manageable default rates.</li>
+            <li><strong>Refine Pricing:</strong> Implement "Risk-Based Pricing" where interest rates are dynamically adjusted based on the five optimized FICO bins developed in </strong>Task 4.</strong></li>
+            
         <h2 style="margin-top: 3rem;">Conclusion & Personal Growth</h2>
-        <p>This project was a deep dive into the realities of large-scale data analysis. Beyond mastering 
-        <strong>BigQuery SQL</strong> and <strong>Tableau</strong>, I learned the importance of <em>Data Auditing</em>—specifically how to identify and recover from ingestion errors like the missing April dataset.</p>
-        <p>By making strategic decisions to preserve "imperfect" data (handling 1.2M NULLs) rather than deleting it, I was able to provide a more accurate representation of Cyclistic’s total system usage. This case study reflects my ability to bridge the gap between technical data cleaning and actionable business strategy.</p>
-        </ul>
-    </div>
+            <p>This simulation provided a rigorous deep dive into <strong>Quantitative Research</strong> at scale. Beyond mastering <strong>BigQuery SQL</strong> and <strong>Tableau</strong>, 
+                I learned the importance of <em>Tool Selection</em>—specifically how choosing a high-performance SQL environment over traditional scripting can streamline the data engineering lifecycle for large financial datasets.</p>
+            <p>By developing a custom dashboard and implementing tiered Expected Loss models, I demonstrated the ability to bridge the gap between raw data and actionable risk strategy. 
+                This project reflects my growth in leveraging modern AI-assisted workflows while maintaining strict mathematical validation and data integrity—skills that are essential for any data professional in the banking sector.</p>
+            </ul>
+        </div>
     
     <section id="more-projects" style="padding: 4rem 5%; border-top: 1px solid var(--border-color); background-color: #ffffff;">
         <h2 class="title" style="font-size: 2rem; margin-bottom: 2rem; text-align: center;">Explore More Projects</h2>
