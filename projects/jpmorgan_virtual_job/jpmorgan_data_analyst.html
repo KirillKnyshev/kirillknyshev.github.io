@@ -25,7 +25,7 @@
 
         <div class="section__pic-container" style="width: 80%; max-width: 800px; margin: 0 auto;">
             <img src="jpmorgan_imagies/jpmorgan_dashboard.PNG" alt="Global Sales Analysis Dashboard" class="about-pic" style="width: 100%; height: auto; border-radius: 2rem; display: block;" />
-            <p style="font-size: 0.8rem; color: #777;">Figure 1: Full dashboard view.</p>
+            <p style="font-size: 0.8rem; color: #777;">Figure 1: Retail Credit Risk & Expected Loss Dashboard</p>
         </div>
     </section>
 
@@ -55,6 +55,10 @@
                 <strong>Beyond Requirements:</strong> I developed an interactive <strong>Tableau</strong> dashboard (not required by the simulation) to transform static risk metrics into a dynamic business monitoring tool, demonstrating a full-stack data lifecycle.
             </p>
         </div>
+
+        <div style="max-width: 1000px; margin: 0 auto; padding: 2rem 5%;">
+        <h2 style="margin-top: 0;">Section 1: Commodities & Desk Support (Tasks 1-2)</h2>
+        <p><strong>Context:</strong> Ingested 10,000+ loan records into BigQuery, auditing for schema consistency and data integrity</p>
             
         <pre style="background: #282c34; color: #abb2bf; padding: 1.0rem; border-radius: 8px; overflow-x: auto; margin: 1rem 0 1rem -1.5rem; font-family: 'Courier New', Courier, monospace; font-size: 0.85rem; border: 1px solid #3e4451; width: calc(100% + 1.5rem);">
         <code>
@@ -112,12 +116,12 @@
 
         <div style="text-align: center; margin: 1.5rem 0 2rem -1.5rem; width: calc(100% + 1.5rem);">
         <img src="jpmorgan_imagies/forecasted_date.PNG" alt="BigQuery Query Results" style="width: 100%; max-width: 800px; border: 1px solid #ddd; border-radius: 8px; display: block; margin: 0 auto;">
-        <p style="font-size: 0.8rem; color: #777; margin-top: 0.5rem;">Figure 2: Historical date: 2022-03-15</p>
+        <p style="font-size: 0.8rem; color: #777; margin-top: 0.5rem;">Figure 2: FICO Segment Distribution (BigQuery)</p>
         </div>
 
         <div style="text-align: center; margin: 1.5rem 0 2rem -1.5rem; width: calc(100% + 1.5rem);">
         <img src="jpmorgan_imagies/historical_date.PNG" alt="BigQuery Query Results" style="width: 100%; max-width: 800px; border: 1px solid #ddd; border-radius: 8px; display: block; margin: 0 auto;">
-        <p style="font-size: 0.8rem; color: #777; margin-top: 0.5rem;">Figure 3: Forcasted date: 2025-07-20</p>
+        <p style="font-size: 0.8rem; color: #777; margin-top: 0.5rem;">Figure 3: Probability of Default (PD) Model Results</p>
         </div>
             
             <li><strong>Forecasting:</strong> I developed a custom SQL engine in BigQuery that performs linear interpolation across a hybrid historical and forecasted price curve. 
@@ -208,6 +212,10 @@
             <li><strong>Technical Implementation:</strong> Developed a SQL-based valuation engine that integrates the interpolated price curve with operational constraints.</li>
             <li><strong>Key Consideration:</strong> The model accounts for the "Cost of Carry," ensuring that storage, injection, and logistics fees are deducted to provide a true net value for the trading desk.</li>
 
+        <div style="max-width: 1000px; margin: 0 auto; padding: 2rem 5%;">
+        <h2 style="margin-top: 0;">Section 2: Credit Risk & Retail Banking (Tasks 3-4))</h2>
+        <p><strong>Context:</strong> Modeling Probability of Default (PD) for mortgage holders.</p>
+                    
         <pre style="background: #282c34; color: #abb2bf; padding: 1.0rem; border-radius: 8px; overflow-x: auto; margin: 1rem 0 1rem -1.5rem; font-family: 'Courier New', Courier, monospace; font-size: 0.85rem; border: 1px solid #3e4451; width: calc(100% + 1.5rem);">
         SELECT 
             customer_id,
@@ -301,8 +309,8 @@
         <div style="display: flex; flex-wrap: wrap; gap: 2rem; align-items: center;">
             <img src="jpmorgan_imagies/efficient_matric.PNG" alt="Seasonal Monthly Chart" style="flex: 1; min-width: 300px; max-width: 450px; border-radius: 8px; border: 1px solid #ddd;">
             <div style="flex: 1; min-width: 300px;">
-                <strong>The Income-Risk Paradox:</strong> Contrary to standard economic assumptions, the scatter plot reveals that higher-income tiers in this portfolio correlate with higher default probabilities.
-                <p style="margin-top: 0.5rem; font-style: italic; font-size: 0.9rem; color: #555;">Result: This suggests that for this specific borrower pool, FICO scores are a far more reliable risk predictor than gross income, likely due to high-income earners carrying larger debt-to-income ratios or having more volatile credit histories.</p>
+                <strong>The Income-Risk Paradox:</strong> Contrary to standard economic assumptions, the scatter plot reveals that higher-income tiers in this specific portfolio correlate with higher default probabilities.
+                <p style="margin-top: 0.5rem; font-style: italic; font-size: 0.9rem; color: #555;">Result: This suggests that for this borrower pool, FICO scores are a far more reliable risk predictor than gross income, likely due to high-income earners carrying larger debt-to-income ratios.</p>
             </div>
         </div>
         </div>      
